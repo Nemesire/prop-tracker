@@ -1,0 +1,186 @@
+import type { User, ActivityEvent, RankingEntry } from '../types'
+
+export const MOCK_COMMUNITY_USERS: Omit<User, 'accounts'>[] = [
+  {
+    id: 'u2', username: 'carlos_trader', displayName: 'Carlos M.',
+    bio: 'Trader de futuros. 3 años en prop firms.', country: 'ES',
+    isPublic: true, xp: 8500, level: 7,
+    badges: ['first_approval', 'hot_streak', 'diamond_hands', 'roi_master', 'top_10'],
+    joinDate: '2024-01-15', following: [], followers: ['u1', 'u3'],
+  },
+  {
+    id: 'u3', username: 'maria_futures', displayName: 'María G.',
+    bio: 'Especialista en índices. Consistencia > todo.', country: 'MX',
+    isPublic: true, xp: 12000, level: 8,
+    badges: ['first_approval', 'diamond_hands', 'legend', 'community_star', 'whale'],
+    joinDate: '2023-11-20', following: [], followers: ['u1', 'u2'],
+  },
+  {
+    id: 'u4', username: 'alex_prop', displayName: 'Alex R.',
+    bio: 'Day trader. Forex & commodities.', country: 'AR',
+    isPublic: true, xp: 3200, level: 5,
+    badges: ['first_approval', 'first_withdrawal', 'multi_account'],
+    joinDate: '2024-06-01', following: [], followers: [],
+  },
+  {
+    id: 'u5', username: 'lucia_trading', displayName: 'Lucía P.',
+    bio: 'Trader algorítmico. Crypto & FX.', country: 'ES',
+    isPublic: true, xp: 5800, level: 6,
+    badges: ['first_approval', 'hot_streak', 'challenge_hunter'],
+    joinDate: '2024-03-10', following: [], followers: ['u1'],
+  },
+  {
+    id: 'u6', username: 'pedro_ftmo', displayName: 'Pedro H.',
+    bio: 'FTMO specialist. Funded since 2022.', country: 'CL',
+    isPublic: true, xp: 9200, level: 7,
+    badges: ['first_approval', 'diamond_hands', 'top_10', 'whale'],
+    joinDate: '2023-08-05', following: [], followers: ['u1', 'u2', 'u3'],
+  },
+  {
+    id: 'u7', username: 'sofia_pips', displayName: 'Sofía V.',
+    bio: 'Scalping & swing. Madre y trader.', country: 'CO',
+    isPublic: true, xp: 2100, level: 4,
+    badges: ['first_approval', 'first_withdrawal'],
+    joinDate: '2024-09-12', following: [], followers: [],
+  },
+  {
+    id: 'u8', username: 'marco_elite', displayName: 'Marco T.',
+    bio: 'Ex-banker. Full-time trader desde 2021.', country: 'ES',
+    isPublic: true, xp: 15000, level: 8,
+    badges: ['first_approval', 'legend', 'whale', 'community_star', 'early_adopter', 'diamond_hands'],
+    joinDate: '2023-01-01', following: [], followers: ['u1', 'u2', 'u3', 'u4'],
+  },
+  {
+    id: 'u9', username: 'ana_funded', displayName: 'Ana L.',
+    bio: 'Trading educación y live. Top Topstep.', country: 'PE',
+    isPublic: true, xp: 4400, level: 5,
+    badges: ['first_approval', 'multi_account', 'challenge_hunter'],
+    joinDate: '2024-04-20', following: [], followers: ['u1'],
+  },
+  {
+    id: 'u10', username: 'juan_trader', displayName: 'Juan D.',
+    bio: 'Estudiante de mercados. Aprendiendo.', country: 'VE',
+    isPublic: true, xp: 650, level: 2,
+    badges: ['first_account'],
+    joinDate: '2025-01-08', following: [], followers: [],
+  },
+]
+
+export const MOCK_RANKING: RankingEntry[] = [
+  {
+    userId: 'u3', username: 'maria_futures', displayName: 'María G.',
+    level: 8, badges: ['legend', 'diamond_hands', 'whale'],
+    totalWithdrawals: 47500, totalProfit: 38200, roi: 312, activeAccounts: 8,
+    approvedEvaluations: 89, rank: 1, previousRank: 1,
+  },
+  {
+    userId: 'u8', username: 'marco_elite', displayName: 'Marco T.',
+    level: 8, badges: ['legend', 'early_adopter', 'whale'],
+    totalWithdrawals: 38900, totalProfit: 29100, roi: 287, activeAccounts: 12,
+    approvedEvaluations: 106, rank: 2, previousRank: 3,
+  },
+  {
+    userId: 'u2', username: 'carlos_trader', displayName: 'Carlos M.',
+    level: 7, badges: ['diamond_hands', 'hot_streak', 'top_10'],
+    totalWithdrawals: 22400, totalProfit: 17629, roi: 198, activeAccounts: 5,
+    approvedEvaluations: 47, rank: 3, previousRank: 2,
+  },
+  {
+    userId: 'u6', username: 'pedro_ftmo', displayName: 'Pedro H.',
+    level: 7, badges: ['diamond_hands', 'top_10', 'whale'],
+    totalWithdrawals: 18600, totalProfit: 14200, roi: 165, activeAccounts: 7,
+    approvedEvaluations: 61, rank: 4, previousRank: 5,
+  },
+  {
+    userId: 'u5', username: 'lucia_trading', displayName: 'Lucía P.',
+    level: 6, badges: ['hot_streak', 'challenge_hunter'],
+    totalWithdrawals: 9800, totalProfit: 7400, roi: 124, activeAccounts: 4,
+    approvedEvaluations: 28, rank: 5, previousRank: 4,
+  },
+  {
+    userId: 'u9', username: 'ana_funded', displayName: 'Ana L.',
+    level: 5, badges: ['multi_account', 'challenge_hunter'],
+    totalWithdrawals: 6200, totalProfit: 4800, roi: 98, activeAccounts: 3,
+    approvedEvaluations: 19, rank: 6, previousRank: 7,
+  },
+  {
+    userId: 'u4', username: 'alex_prop', displayName: 'Alex R.',
+    level: 5, badges: ['first_withdrawal', 'multi_account'],
+    totalWithdrawals: 4100, totalProfit: 2900, roi: 76, activeAccounts: 6,
+    approvedEvaluations: 14, rank: 7, previousRank: 6,
+  },
+  {
+    userId: 'u7', username: 'sofia_pips', displayName: 'Sofía V.',
+    level: 4, badges: ['first_withdrawal'],
+    totalWithdrawals: 1800, totalProfit: 900, roi: 42, activeAccounts: 2,
+    approvedEvaluations: 7, rank: 8, previousRank: 9,
+  },
+  {
+    userId: 'u10', username: 'juan_trader', displayName: 'Juan D.',
+    level: 2, badges: ['first_account'],
+    totalWithdrawals: 0, totalProfit: -320, roi: -12, activeAccounts: 1,
+    approvedEvaluations: 0, rank: 9, previousRank: 8,
+  },
+]
+
+export const MOCK_ACTIVITY: ActivityEvent[] = [
+  {
+    id: 'a1', userId: 'u3', username: 'maria_futures', displayName: 'María G.',
+    type: 'withdrawal',
+    description: 'realizó un retiro de su cuenta FTMO',
+    amount: 2800,
+    date: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
+    reactions: { '🔥': ['u1', 'u2'], '👏': ['u4', 'u5', 'u6'] },
+  },
+  {
+    id: 'a2', userId: 'u2', username: 'carlos_trader', displayName: 'Carlos M.',
+    type: 'evaluation_passed',
+    description: 'aprobó una evaluación en Tradeify',
+    amount: undefined,
+    date: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
+    reactions: { '👏': ['u1', 'u3'], '💪': ['u7'] },
+  },
+  {
+    id: 'a3', userId: 'u6', username: 'pedro_ftmo', displayName: 'Pedro H.',
+    type: 'challenge_completed',
+    description: 'completó el reto "Aprobador Mensual"',
+    date: new Date(Date.now() - 1000 * 60 * 90).toISOString(),
+    reactions: { '🏆': ['u1', 'u2', 'u3', 'u8'], '🔥': ['u5'] },
+  },
+  {
+    id: 'a4', userId: 'u8', username: 'marco_elite', displayName: 'Marco T.',
+    type: 'level_up',
+    description: 'alcanzó el nivel Legend (Nivel 8)',
+    date: new Date(Date.now() - 1000 * 60 * 180).toISOString(),
+    reactions: { '🌟': ['u1', 'u2', 'u3', 'u4', 'u5'], '👑': ['u6', 'u7'] },
+  },
+  {
+    id: 'a5', userId: 'u4', username: 'alex_prop', displayName: 'Alex R.',
+    type: 'account_added',
+    description: 'añadió una nueva cuenta en Funding Ticks',
+    date: new Date(Date.now() - 1000 * 60 * 240).toISOString(),
+    reactions: { '💪': ['u1'] },
+  },
+  {
+    id: 'a6', userId: 'u5', username: 'lucia_trading', displayName: 'Lucía P.',
+    type: 'badge_earned',
+    description: 'obtuvo el badge "Cazador de Retos"',
+    date: new Date(Date.now() - 1000 * 60 * 300).toISOString(),
+    reactions: { '🎯': ['u2', 'u3'] },
+  },
+  {
+    id: 'a7', userId: 'u9', username: 'ana_funded', displayName: 'Ana L.',
+    type: 'withdrawal',
+    description: 'realizó un retiro de su cuenta Topstep',
+    amount: 1200,
+    date: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(),
+    reactions: { '💰': ['u1', 'u2'], '🔥': ['u3'] },
+  },
+  {
+    id: 'a8', userId: 'u7', username: 'sofia_pips', displayName: 'Sofía V.',
+    type: 'evaluation_passed',
+    description: 'aprobó una evaluación en E8 Funding',
+    date: new Date(Date.now() - 1000 * 60 * 60 * 8).toISOString(),
+    reactions: { '👏': ['u1', 'u5'] },
+  },
+]
