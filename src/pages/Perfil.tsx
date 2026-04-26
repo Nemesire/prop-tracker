@@ -119,7 +119,7 @@ export default function Perfil() {
               { label: 'ROI', value: `${roi.toFixed(1)}%`, color: roi >= 0 ? '#22C55E' : '#EF4444' },
             ].map(({ label, value, color }) => (
               <div key={label} className="text-center">
-                <div className="text-lg font-bold" style={{ color: color ?? '#F8F8FF' }}>{value}</div>
+                <div className="text-lg font-bold" style={{ color: color ?? 'var(--text)' }}>{value}</div>
                 <div className="text-xs text-[var(--muted)]">{label}</div>
               </div>
             ))}

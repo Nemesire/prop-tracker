@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+﻿import type { ReactNode } from 'react'
 
 interface Props {
   title: string
@@ -11,7 +11,7 @@ interface Props {
 
 export default function StatsCard({ title, value, subtitle, icon, color = '#7C3AED', trend }: Props) {
   return (
-    <div className="bg-[#1A1A2E] border border-[#2D2D4E] rounded-2xl p-5 hover:border-[#7C3AED]/30 transition-all group">
+    <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-5 hover:border-[#7C3AED]/30 transition-all group">
       <div className="flex items-start justify-between mb-4">
         <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: `${color}20` }}>
           <span style={{ color }}>{icon}</span>
@@ -23,9 +23,9 @@ export default function StatsCard({ title, value, subtitle, icon, color = '#7C3A
         )}
       </div>
       <div>
-        <div className="text-2xl font-bold text-[#F8F8FF] mb-1">{value}</div>
-        <div className="text-sm text-[#8888AA]">{title}</div>
-        {subtitle && <div className="text-xs text-[#8888AA] mt-0.5 opacity-70">{subtitle}</div>}
+        <div className="text-2xl font-bold text-[var(--text)] mb-1">{value}</div>
+        <div className="text-sm text-[var(--muted)]">{title}</div>
+        {subtitle && <div className="text-xs text-[var(--muted)] mt-0.5 opacity-70">{subtitle}</div>}
       </div>
     </div>
   )

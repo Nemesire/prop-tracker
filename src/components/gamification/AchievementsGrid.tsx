@@ -1,4 +1,4 @@
-import { BADGES, BADGE_RARITY_COLORS } from '../../data/badges'
+﻿import { BADGES, BADGE_RARITY_COLORS } from '../../data/badges'
 
 interface Props {
   earnedBadges: string[]
@@ -19,12 +19,12 @@ export default function AchievementsGrid({ earnedBadges, showAll = false }: Prop
             title={`${badge.name}: ${badge.description}`}
             className={`relative flex flex-col items-center gap-1.5 p-3 rounded-xl border text-center transition-all ${
               earned
-                ? 'bg-[#22223A] border-[#2D2D4E] hover:border-purple-500/50'
-                : 'bg-[#0F0F1A] border-[#1A1A2E] opacity-40 grayscale'
+                ? 'bg-[var(--surface2)] border-[var(--border)] hover:border-purple-500/50'
+                : 'bg-[var(--bg)] border-[var(--surface)] opacity-40 grayscale'
             }`}
           >
             <span className="text-2xl">{badge.icon}</span>
-            <span className="text-xs font-medium text-[#F8F8FF] leading-tight">{badge.name}</span>
+            <span className="text-xs font-medium text-[var(--text)] leading-tight">{badge.name}</span>
             {earned && (
               <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full" style={{ color, background: `${color}20` }}>
                 {badge.rarity}

@@ -15,9 +15,16 @@ function fmt(v: number) {
 export default function CapitalChart({ accounts, hideValues }: Props) {
   const data = buildCapitalChartData(accounts)
 
+  // Lee las CSS vars en tiempo de render para que cambien con el tema
+  const style  = getComputedStyle(document.documentElement)
+  const border = style.getPropertyValue('--border').trim()   || '#2D2D4E'
+  const muted  = style.getPropertyValue('--muted').trim()    || '#8888AA'
+  const surface= style.getPropertyValue('--surface').trim()  || '#1A1A2E'
+  const text   = style.getPropertyValue('--text').trim()     || '#F8F8FF'
+
   if (data.length === 0) {
     return (
-      <div className="flex items-center justify-center h-48 text-[#8888AA] text-sm">
+      <div className="flex items-center justify-center h-48 text-[var(--muted)] text-sm">
         Añade cuentas para ver la evolución del capital
       </div>
     )
@@ -40,17 +47,17 @@ export default function CapitalChart({ accounts, hideValues }: Props) {
             <stop offset="95%" stopColor="#EF4444" stopOpacity={0} />
           </linearGradient>
         </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="#2D2D4E" />
-        <XAxis dataKey="date" tick={{ fill: '#8888AA', fontSize: 11 }} tickLine={false} axisLine={false} />
-        <YAxis tickFormatter={hideValues ? () => '***' : fmt} tick={{ fill: '#8888AA', fontSize: 11 }} tickLine={false} axisLine={false} />
+        <CartesianGrid strokeDasharray="3 3" stroke={border} />
+        <XAxis dataKey="date" tick={{ fill: muted, fontSize: 11 }} tickLine={false} axisLine={false} />
+        <YAxis tickFormatter={hideValues ? () => '***' : fmt} tick={{ fill: muted, fontSize: 11 }} tickLine={false} axisLine={false} />
         <Tooltip
-          contentStyle={{ background: '#1A1A2E', border: '1px solid #2D2D4E', borderRadius: 12, color: '#F8F8FF' }}
+          contentStyle={{ background: surface, border: `1px solid ${border}`, borderRadius: 12, color: text }}
           formatter={(v: unknown, name: unknown) => [hideValues ? '***' : fmt(Number(v)), String(name)]}
         />
-        <Legend wrapperStyle={{ color: '#8888AA', fontSize: 12 }} />
-        <Area type="monotone" dataKey="capital" name="Capital" stroke="#7C3AED" strokeWidth={2} fill="url(#gradCapital)" dot={false} />
-        <Area type="monotone" dataKey="ganancias" name="Ganancias" stroke="#22C55E" strokeWidth={2} fill="url(#gradGanancias)" dot={false} />
-        <Area type="monotone" dataKey="gastos" name="Gastos" stroke="#EF4444" strokeWidth={1.5} fill="url(#gradGastos)" dot={false} />
+        <Legend wrapperStyle={{ color: muted, fontSize: 12 }} />
+        <Area type="monotone" dataKey="capital"   name="Capital"   stroke="#7C3AED" strokeWidth={2}   fill="url(#gradCapital)"   dot={false} />
+        <Area type="monotone" dataKey="ganancias" name="Ganancias" stroke="#22C55E" strokeWidth={2}   fill="url(#gradGanancias)" dot={false} />
+        <Area type="monotone" dataKey="gastos"    name="Gastos"    stroke="#EF4444" strokeWidth={1.5} fill="url(#gradGastos)"    dot={false} />
       </AreaChart>
     </ResponsiveContainer>
   )

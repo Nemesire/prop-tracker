@@ -1,4 +1,4 @@
-interface Props {
+﻿interface Props {
   name: string
   src?: string
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
@@ -32,7 +32,7 @@ export default function Avatar({ name, src, size = 'md', level }: Props) {
         </div>
       )}
       {level !== undefined && (
-        <span className="absolute -bottom-1 -right-1 bg-[#7C3AED] text-white text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center border border-[#0F0F1A]">
+        <span className="absolute -bottom-1 -right-1 bg-[#7C3AED] text-white text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center border border-[var(--bg)]">
           {level}
         </span>
       )}

@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from 'react'
+﻿import { useEffect, type ReactNode } from 'react'
 import { X } from 'lucide-react'
 
 interface Props {
@@ -27,13 +27,13 @@ export default function Modal({ open, onClose, title, children, size = 'md' }: P
     >
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
       <div
-        className={`relative w-full ${sizes[size]} bg-[#1A1A2E] border border-[#2D2D4E] rounded-2xl shadow-2xl fade-in`}
+        className={`relative w-full ${sizes[size]} bg-[var(--surface)] border border-[var(--border)] rounded-2xl shadow-2xl fade-in`}
         onClick={e => e.stopPropagation()}
       >
         {title && (
-          <div className="flex items-center justify-between p-5 border-b border-[#2D2D4E]">
-            <h2 className="text-lg font-semibold text-[#F8F8FF]">{title}</h2>
-            <button onClick={onClose} className="p-1 rounded-lg hover:bg-[#22223A] text-[#8888AA] hover:text-[#F8F8FF] transition-colors">
+          <div className="flex items-center justify-between p-5 border-b border-[var(--border)]">
+            <h2 className="text-lg font-semibold text-[var(--text)]">{title}</h2>
+            <button onClick={onClose} className="p-1 rounded-lg hover:bg-[var(--surface2)] text-[var(--muted)] hover:text-[var(--text)] transition-colors">
               <X size={18} />
             </button>
           </div>

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { Eye, EyeOff, Share2, BarChart2, CreditCard, Percent, TrendingUp, TrendingDown, DollarSign } from 'lucide-react'
 import { useAppStore } from '../store/useAppStore'
 import { calcCompanyStats, calcROI, calcFundingRatio, formatCurrency } from '../utils/calculations'
@@ -47,26 +47,26 @@ export default function Dashboard() {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-[#F8F8FF]">Dashboard</h1>
-          <p className="text-sm text-[#8888AA] mt-0.5">Resumen de tu rendimiento</p>
+          <h1 className="text-2xl font-bold text-[var(--text)]">Dashboard</h1>
+          <p className="text-sm text-[var(--muted)] mt-0.5">Resumen de tu rendimiento</p>
         </div>
         <div className="flex items-center gap-3">
           <button
             onClick={toggleHideValues}
-            className="flex items-center gap-2 px-3 py-2 bg-[#1A1A2E] border border-[#2D2D4E] rounded-xl text-sm text-[#8888AA] hover:text-[#F8F8FF] hover:border-[#7C3AED]/50 transition-colors"
+            className="flex items-center gap-2 px-3 py-2 bg-[var(--surface)] border border-[var(--border)] rounded-xl text-sm text-[var(--muted)] hover:text-[var(--text)] hover:border-[#7C3AED]/50 transition-colors"
           >
             {hideValues ? <EyeOff size={14} /> : <Eye size={14} />}
             {hideValues ? 'Mostrar valores' : 'Ocultar valores'}
           </button>
           <DateRangePicker value={dateRange} onChange={setDateRange} />
-          <button onClick={() => setShareOpen(true)} className="p-2 bg-[#1A1A2E] border border-[#2D2D4E] rounded-xl text-[#8888AA] hover:text-[#7C3AED] hover:border-[#7C3AED]/50 transition-colors">
+          <button onClick={() => setShareOpen(true)} className="p-2 bg-[var(--surface)] border border-[var(--border)] rounded-xl text-[var(--muted)] hover:text-[#7C3AED] hover:border-[#7C3AED]/50 transition-colors">
             <Share2 size={16} />
           </button>
         </div>
       </div>
 
       {/* Level widget */}
-      <div className="flex items-center gap-4 bg-[#1A1A2E] border border-[#2D2D4E] rounded-2xl px-5 py-4">
+      <div className="flex items-center gap-4 bg-[var(--surface)] border border-[var(--border)] rounded-2xl px-5 py-4">
         <LevelBadge xp={currentUser.xp} showProgress size="md" />
         <div className="flex-1" />
         <div className="flex gap-1.5">
@@ -125,9 +125,9 @@ export default function Dashboard() {
       </div>
 
       {/* Capital Chart */}
-      <div className="bg-[#1A1A2E] border border-[#2D2D4E] rounded-2xl p-5">
-        <h2 className="font-semibold text-[#F8F8FF] mb-1">Evolución del Capital</h2>
-        <p className="text-xs text-[#8888AA] mb-5">Seguimiento de tu rendimiento en el tiempo</p>
+      <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-5">
+        <h2 className="font-semibold text-[var(--text)] mb-1">Evolución del Capital</h2>
+        <p className="text-xs text-[var(--muted)] mb-5">Seguimiento de tu rendimiento en el tiempo</p>
         <CapitalChart accounts={accounts} hideValues={hideValues} />
       </div>
 
@@ -139,18 +139,18 @@ export default function Dashboard() {
           { label: 'Promedio Diario', value: fmt(avgDay), icon: '📊', color: '#3B82F6' },
           { label: 'Retiros', value: String(withdrawalCount), icon: '💸', color: '#F59E0B' },
         ].map(({ label, value, icon, color }) => (
-          <div key={label} className="bg-[#1A1A2E] border border-[#2D2D4E] rounded-2xl p-4 text-center">
+          <div key={label} className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-4 text-center">
             <div className="text-2xl mb-2">{icon}</div>
             <div className="text-xl font-bold" style={{ color }}>{value}</div>
-            <div className="text-xs text-[#8888AA] mt-1">{label}</div>
+            <div className="text-xs text-[var(--muted)] mt-1">{label}</div>
           </div>
         ))}
       </div>
 
       {/* Company Analysis */}
       <div>
-        <h2 className="text-lg font-semibold text-[#F8F8FF] mb-1">Análisis por Empresa</h2>
-        <p className="text-sm text-[#8888AA] mb-4">Rendimiento detallado de cada prop firm</p>
+        <h2 className="text-lg font-semibold text-[var(--text)] mb-1">Análisis por Empresa</h2>
+        <p className="text-sm text-[var(--muted)] mb-4">Rendimiento detallado de cada prop firm</p>
         <CompanyAnalysis stats={companyStats} hideValues={hideValues} />
       </div>
 

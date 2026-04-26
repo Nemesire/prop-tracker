@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppStore } from '../store/useAppStore'
 import Button from '../components/ui/Button'
@@ -52,10 +52,10 @@ export default function Auth() {
     }
   }
 
-  const inputCls = 'w-full bg-[#0F0F1A] border border-[#2D2D4E] rounded-xl px-4 py-3 text-sm text-[#F8F8FF] placeholder:text-[#8888AA] focus:outline-none focus:border-[#7C3AED] transition-colors'
+  const inputCls = 'w-full bg-[var(--bg)] border border-[var(--border)] rounded-xl px-4 py-3 text-sm text-[var(--text)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[#7C3AED] transition-colors'
 
   return (
-    <div className="min-h-screen bg-[#0F0F1A] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[var(--bg)] flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
 
         {/* Logo */}
@@ -63,21 +63,21 @@ export default function Auth() {
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#7C3AED] to-[#3B82F6] flex items-center justify-center mx-auto mb-4 shadow-lg shadow-purple-900/40">
             <span className="text-white font-black text-xl">PT</span>
           </div>
-          <h1 className="text-2xl font-bold text-[#F8F8FF]">PropTracker</h1>
-          <p className="text-sm text-[#8888AA] mt-1">La comunidad de prop traders</p>
+          <h1 className="text-2xl font-bold text-[var(--text)]">PropTracker</h1>
+          <p className="text-sm text-[var(--muted)] mt-1">La comunidad de prop traders</p>
         </div>
 
         {/* Card */}
-        <div className="bg-[#1A1A2E] border border-[#2D2D4E] rounded-2xl p-6">
+        <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-6">
 
           {/* Tabs */}
-          <div className="flex gap-1 mb-6 bg-[#0F0F1A] rounded-xl p-1">
+          <div className="flex gap-1 mb-6 bg-[var(--bg)] rounded-xl p-1">
             {(['login', 'register'] as const).map(m => (
               <button
                 key={m}
                 onClick={() => { setMode(m); setError('') }}
                 className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
-                  mode === m ? 'bg-[#7C3AED] text-white' : 'text-[#8888AA] hover:text-[#F8F8FF]'
+                  mode === m ? 'bg-[#7C3AED] text-white' : 'text-[var(--muted)] hover:text-[var(--text)]'
                 }`}
               >
                 {m === 'login' ? 'Iniciar sesión' : 'Registrarse'}
@@ -87,7 +87,7 @@ export default function Auth() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-medium text-[#8888AA] mb-1.5">Usuario</label>
+              <label className="block text-xs font-medium text-[var(--muted)] mb-1.5">Usuario</label>
               <input
                 className={inputCls}
                 value={username}
@@ -100,7 +100,7 @@ export default function Auth() {
 
             {mode === 'register' && (
               <div>
-                <label className="block text-xs font-medium text-[#8888AA] mb-1.5">Nombre público</label>
+                <label className="block text-xs font-medium text-[var(--muted)] mb-1.5">Nombre público</label>
                 <input
                   className={inputCls}
                   value={displayName}
@@ -111,7 +111,7 @@ export default function Auth() {
             )}
 
             <div>
-              <label className="block text-xs font-medium text-[#8888AA] mb-1.5">Contraseña</label>
+              <label className="block text-xs font-medium text-[var(--muted)] mb-1.5">Contraseña</label>
               <input
                 type="password"
                 className={inputCls}
@@ -134,13 +134,13 @@ export default function Auth() {
           </form>
 
           {mode === 'login' && (
-            <p className="text-center text-xs text-[#8888AA] mt-4">
+            <p className="text-center text-xs text-[var(--muted)] mt-4">
               ¿No tienes cuenta? <button onClick={() => { setMode('register'); setError('') }} className="text-[#7C3AED] hover:underline">Regístrate gratis</button>
             </p>
           )}
         </div>
 
-        <p className="text-center text-xs text-[#8888AA] mt-6">
+        <p className="text-center text-xs text-[var(--muted)] mt-6">
           {mode === 'login' ? '¿No tienes cuenta? ' : '¿Ya tienes cuenta? '}
           <button
             onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError('') }}

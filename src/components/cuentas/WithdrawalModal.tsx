@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import Modal from '../ui/Modal'
 import Button from '../ui/Button'
 import { useAppStore } from '../../store/useAppStore'
@@ -25,22 +25,22 @@ export default function WithdrawalModal({ open, onClose, account }: Props) {
     onClose()
   }
 
-  const inputCls = 'w-full bg-[#0F0F1A] border border-[#2D2D4E] rounded-xl px-3 py-2.5 text-sm text-[#F8F8FF] focus:outline-none focus:border-[#7C3AED] transition-colors'
+  const inputCls = 'w-full bg-[var(--bg)] border border-[var(--border)] rounded-xl px-3 py-2.5 text-sm text-[var(--text)] focus:outline-none focus:border-[#7C3AED] transition-colors'
 
   return (
     <Modal open={open} onClose={onClose} title="Registrar Retiro">
-      <div className="mb-4 p-3 bg-[#0F0F1A] rounded-xl border border-[#2D2D4E]">
-        <p className="text-xs text-[#8888AA]">Cuenta</p>
-        <p className="text-sm font-medium text-[#F8F8FF]">{account.name}</p>
-        <p className="text-xs text-[#8888AA] mt-1">Retiros anteriores: <span className="text-[#22C55E]">{formatCurrency(account.withdrawals)}</span></p>
+      <div className="mb-4 p-3 bg-[var(--bg)] rounded-xl border border-[var(--border)]">
+        <p className="text-xs text-[var(--muted)]">Cuenta</p>
+        <p className="text-sm font-medium text-[var(--text)]">{account.name}</p>
+        <p className="text-xs text-[var(--muted)] mt-1">Retiros anteriores: <span className="text-[#22C55E]">{formatCurrency(account.withdrawals)}</span></p>
       </div>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-xs font-medium text-[#8888AA] mb-1.5">Cantidad (€)</label>
+          <label className="block text-xs font-medium text-[var(--muted)] mb-1.5">Cantidad (€)</label>
           <input type="number" min="0.01" step="0.01" className={inputCls} value={amount} onChange={e => setAmount(e.target.value)} required placeholder="0.00" autoFocus />
         </div>
         <div>
-          <label className="block text-xs font-medium text-[#8888AA] mb-1.5">Nota (opcional)</label>
+          <label className="block text-xs font-medium text-[var(--muted)] mb-1.5">Nota (opcional)</label>
           <input className={inputCls} value={note} onChange={e => setNote(e.target.value)} placeholder="ej. Pago de octubre" />
         </div>
         <div className="flex gap-3">

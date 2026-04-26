@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes, ReactNode } from 'react'
+﻿import type { ButtonHTMLAttributes, ReactNode } from 'react'
 
 interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'success'
@@ -9,8 +9,8 @@ interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variants = {
   primary: 'bg-[#7C3AED] hover:bg-[#6D28D9] text-white shadow-lg shadow-purple-900/30',
-  secondary: 'bg-[#22223A] hover:bg-[#2D2D4E] text-[#F8F8FF] border border-[#2D2D4E]',
-  ghost: 'bg-transparent hover:bg-[#22223A] text-[#8888AA] hover:text-[#F8F8FF]',
+  secondary: 'bg-[var(--surface2)] hover:bg-[var(--border)] text-[var(--text)] border border-[var(--border)]',
+  ghost: 'bg-transparent hover:bg-[var(--surface2)] text-[var(--muted)] hover:text-[var(--text)]',
   danger: 'bg-[#EF4444] hover:bg-[#DC2626] text-white',
   success: 'bg-[#22C55E] hover:bg-[#16A34A] text-white',
 }
