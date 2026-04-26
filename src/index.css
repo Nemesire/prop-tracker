@@ -17,6 +17,7 @@
 
 /* ── Dark theme (default) ── */
 :root, html.dark {
+  color-scheme: dark;
   --bg:        #0F0F1A;
   --surface:   #1A1A2E;
   --surface2:  #22223A;
@@ -30,6 +31,7 @@
 
 /* ── Light theme ── */
 html.light {
+  color-scheme: light;
   --bg:        #F1F2F7;
   --surface:   #FFFFFF;
   --surface2:  #F5F5FA;
@@ -87,10 +89,19 @@ body {
   font-size: 14px;
   width: 100%;
   outline: none;
-  transition: border-color 0.15s;
+  transition: border-color 0.15s, background-color 0.25s, color 0.25s;
 }
 .input-base:focus { border-color: #7C3AED; }
 .input-base::placeholder { color: var(--muted); }
+.input-base option {
+  background-color: var(--surface);
+  color: var(--text);
+}
+
+/* Asegura que todos los inputs/selects/textareas hereden el tema */
+input, select, textarea {
+  color-scheme: inherit;
+}
 
 /* Shared */
 .gradient-text {

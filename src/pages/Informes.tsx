@@ -9,6 +9,13 @@ export default function Informes() {
   const { currentUser, hideValues } = useAppStore()
   if (!currentUser) return null
 
+  const cssVar = (v: string) => getComputedStyle(document.documentElement).getPropertyValue(v).trim()
+  const border  = cssVar('--border')  || '#2D2D4E'
+  const muted   = cssVar('--muted')   || '#8888AA'
+  const surface = cssVar('--surface') || '#1A1A2E'
+  const text    = cssVar('--text')    || '#F8F8FF'
+  const tooltipStyle = { background: surface, border: `1px solid ${border}`, borderRadius: 12, color: text }
+
   const accounts = currentUser.accounts
   const companyStats = calcCompanyStats(accounts)
 
@@ -56,11 +63,11 @@ export default function Informes() {
           {barData.length > 0 ? (
             <ResponsiveContainer width="100%" height={240}>
               <BarChart data={barData} margin={{ top: 5, right: 10, left: 0, bottom: 30 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#2D2D4E" />
-                <XAxis dataKey="name" tick={{ fill: '#8888AA', fontSize: 10 }} angle={-30} textAnchor="end" tickLine={false} axisLine={false} />
-                <YAxis tick={{ fill: '#8888AA', fontSize: 10 }} tickLine={false} axisLine={false} tickFormatter={v => `€${(v / 1000).toFixed(0)}k`} />
-                <Tooltip contentStyle={{ background: '#1A1A2E', border: '1px solid #2D2D4E', borderRadius: 12, color: '#F8F8FF' }} formatter={(v: unknown) => [fmt(Number(v))]} />
-                <Legend wrapperStyle={{ color: '#8888AA', fontSize: 11 }} />
+                <CartesianGrid strokeDasharray="3 3" stroke={border} />
+                <XAxis dataKey="name" tick={{ fill: muted, fontSize: 10 }} angle={-30} textAnchor="end" tickLine={false} axisLine={false} />
+                <YAxis tick={{ fill: muted, fontSize: 10 }} tickLine={false} axisLine={false} tickFormatter={v => `€${(v / 1000).toFixed(0)}k`} />
+                <Tooltip contentStyle={tooltipStyle} formatter={(v: unknown) => [fmt(Number(v))]} />
+                <Legend wrapperStyle={{ color: muted, fontSize: 11 }} />
                 <Bar dataKey="gastos" name="Gastos" fill="#EF4444" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="retiros" name="Retiros" fill="#22C55E" radius={[4, 4, 0, 0]} />
               </BarChart>
@@ -77,8 +84,8 @@ export default function Informes() {
                 <Pie data={pieData} cx="50%" cy="50%" innerRadius={60} outerRadius={90} paddingAngle={3} dataKey="value">
                   {pieData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
                 </Pie>
-                <Tooltip contentStyle={{ background: '#1A1A2E', border: '1px solid #2D2D4E', borderRadius: 12, color: '#F8F8FF' }} formatter={(v: unknown) => [fmt(Number(v))]} />
-                <Legend wrapperStyle={{ color: '#8888AA', fontSize: 11 }} />
+                <Tooltip contentStyle={tooltipStyle} formatter={(v: unknown) => [fmt(Number(v))]} />
+                <Legend wrapperStyle={{ color: muted, fontSize: 11 }} />
               </PieChart>
             </ResponsiveContainer>
           ) : <p className="text-[var(--muted)] text-sm py-10 text-center">Sin datos suficientes</p>}
