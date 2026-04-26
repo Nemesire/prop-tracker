@@ -10,9 +10,8 @@ export default function Auth() {
   const [password, setPassword]   = useState('')
   const [error, setError]         = useState('')
   const [loading, setLoading]     = useState(false)
-  const [apiDown, setApiDown]     = useState(false)
 
-  const { loginWithApi, registerWithApi, register, login } = useAppStore()
+  const { loginWithApi, registerWithApi } = useAppStore()
   const navigate = useNavigate()
 
   async function handleSubmit(e: React.FormEvent) {
@@ -24,66 +23,29 @@ export default function Auth() {
       if (mode === 'register') {
         if (!username.trim() || !displayName.trim()) {
           setError('Completa todos los campos')
-          setLoading(false)
           return
         }
         if (password.length < 6) {
           setError('La contraseña debe tener al menos 6 caracteres')
-          setLoading(false)
           return
         }
-
-        try {
-          // Intenta registro real con backend
-          await registerWithApi(username.toLowerCase().trim(), displayName.trim(), password)
-          navigate('/dashboard')
-        } catch (err: unknown) {
-          const isNetwork = err instanceof TypeError && err.message.includes('fetch')
-          if (isNetwork) {
-            // Backend no disponible → modo demo
-            setApiDown(true)
-            register(username.toLowerCase().replace(/\s+/g, '_'), displayName.trim())
-            navigate('/dashboard')
-          } else {
-            setError((err as Error).message)
-          }
-        }
+        await registerWithApi(username.toLowerCase().trim(), displayName.trim(), password)
+        navigate('/dashboard')
 
       } else {
-        if (!username.trim()) {
-          setError('Introduce tu usuario')
-          setLoading(false)
+        if (!username.trim() || !password.trim()) {
+          setError('Introduce tu usuario y contraseña')
           return
         }
-
-        try {
-          // Intenta login real con backend
-          await loginWithApi(username.toLowerCase().trim(), password)
-          navigate('/dashboard')
-        } catch (err: unknown) {
-          const isNetwork = err instanceof TypeError && err.message.includes('fetch')
-          if (isNetwork) {
-            // Backend no disponible → modo demo con datos mock
-            setApiDown(true)
-            const mockAccounts = (await import('../store/mockAccounts')).MOCK_ACCOUNTS
-            login({
-              id:          'u1',
-              username:    username.toLowerCase().trim() || 'demo',
-              displayName: username.trim() || 'Demo',
-              isPublic:    true,
-              xp:          2400,
-              level:       4,
-              badges:      ['first_account', 'first_approval', 'first_withdrawal'],
-              joinDate:    '2025-01-01',
-              accounts:    mockAccounts,
-              following:   [],
-              followers:   [],
-            })
-            navigate('/dashboard')
-          } else {
-            setError((err as Error).message)
-          }
-        }
+        await loginWithApi(username.toLowerCase().trim(), password)
+        navigate('/dashboard')
+      }
+    } catch (err: unknown) {
+      const msg = (err as Error).message
+      if (msg.includes('fetch') || msg.includes('network') || msg.includes('Failed')) {
+        setError('No se puede conectar al servidor. Inténtalo de nuevo.')
+      } else {
+        setError(msg)
       }
     } finally {
       setLoading(false)
@@ -105,13 +67,6 @@ export default function Auth() {
           <p className="text-sm text-[#8888AA] mt-1">La comunidad de prop traders</p>
         </div>
 
-        {/* Banner backend offline */}
-        {apiDown && (
-          <div className="mb-4 px-4 py-2.5 rounded-xl bg-[#F59E0B]/10 border border-[#F59E0B]/30 text-xs text-[#F59E0B] text-center">
-            ⚠️ Backend no detectado — entrando en modo demo
-          </div>
-        )}
-
         {/* Card */}
         <div className="bg-[#1A1A2E] border border-[#2D2D4E] rounded-2xl p-6">
 
@@ -120,7 +75,7 @@ export default function Auth() {
             {(['login', 'register'] as const).map(m => (
               <button
                 key={m}
-                onClick={() => { setMode(m); setError(''); setApiDown(false) }}
+                onClick={() => { setMode(m); setError('') }}
                 className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
                   mode === m ? 'bg-[#7C3AED] text-white' : 'text-[#8888AA] hover:text-[#F8F8FF]'
                 }`}
@@ -178,9 +133,9 @@ export default function Auth() {
             </Button>
           </form>
 
-          {mode === 'login' && !apiDown && (
+          {mode === 'login' && (
             <p className="text-center text-xs text-[#8888AA] mt-4">
-              Demo: usa cualquier usuario para entrar con datos de ejemplo
+              ¿No tienes cuenta? <button onClick={() => { setMode('register'); setError('') }} className="text-[#7C3AED] hover:underline">Regístrate gratis</button>
             </p>
           )}
         </div>
