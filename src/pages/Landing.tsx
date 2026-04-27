@@ -28,9 +28,9 @@ export default function Landing() {
   const navigate = useNavigate()
 
   return (
-    <div className="min-h-screen bg-[var(--bg)] text-[var(--text)]">
+    <div className="min-h-screen bg-bg text-text">
       {/* Navbar */}
-      <nav className="border-b border-[var(--border)] px-6 py-4 flex items-center justify-between">
+      <nav className="border-b border-border px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#7C3AED] to-[#3B82F6] flex items-center justify-center">
             <span className="text-white font-black text-sm">PT</span>
@@ -56,7 +56,7 @@ export default function Landing() {
             <span className="gradient-text">prop firms</span>
             {' '}como un pro
           </h1>
-          <p className="text-xl text-[var(--muted)] mb-10 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-xl text-muted mb-10 max-w-2xl mx-auto leading-relaxed">
             Sigue todas tus cuentas de fondeo, compite en el ranking global, completa challenges y comparte tus resultados con la comunidad.
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
@@ -71,12 +71,12 @@ export default function Landing() {
       </section>
 
       {/* Stats */}
-      <section className="px-6 py-12 border-y border-[var(--border)]">
+      <section className="px-6 py-12 border-y border-border">
         <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
           {STATS.map(({ value, label }) => (
             <div key={label} className="text-center">
               <div className="text-3xl font-black gradient-text mb-1">{value}</div>
-              <div className="text-sm text-[var(--muted)]">{label}</div>
+              <div className="text-sm text-muted">{label}</div>
             </div>
           ))}
         </div>
@@ -87,16 +87,16 @@ export default function Landing() {
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-14">
             <h2 className="text-3xl font-bold mb-4">Todo lo que necesitas para escalar</h2>
-            <p className="text-[var(--muted)] text-lg">Herramientas profesionales combinadas con la motivación de la comunidad</p>
+            <p className="text-muted text-lg">Herramientas profesionales combinadas con la motivación de la comunidad</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {FEATURES.map(({ icon: Icon, title, desc }) => (
-              <div key={title} className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-6 hover:border-[#7C3AED]/40 hover:bg-[#1E1E38] transition-all group">
+              <div key={title} className="bg-surface border border-border rounded-2xl p-6 hover:border-[#7C3AED]/40 hover:bg-[#1E1E38] transition-all group">
                 <div className="w-12 h-12 rounded-xl bg-[#7C3AED]/15 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                   <Icon size={22} className="text-[#7C3AED]" />
                 </div>
-                <h3 className="font-semibold text-[var(--text)] mb-2">{title}</h3>
-                <p className="text-sm text-[var(--muted)] leading-relaxed">{desc}</p>
+                <h3 className="font-semibold text-text mb-2">{title}</h3>
+                <p className="text-sm text-muted leading-relaxed">{desc}</p>
               </div>
             ))}
           </div>
@@ -104,21 +104,21 @@ export default function Landing() {
       </section>
 
       {/* Testimonials */}
-      <section className="px-6 py-20 bg-[var(--surface)]/50">
+      <section className="px-6 py-20 bg-surface/50">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-3xl font-bold text-center mb-14">Lo que dicen los traders</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {TESTIMONIALS.map(({ name, level, badge, text }) => (
-              <div key={name} className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-5">
+              <div key={name} className="bg-surface border border-border rounded-2xl p-5">
                 <div className="text-3xl mb-4">"</div>
-                <p className="text-[var(--muted)] text-sm leading-relaxed mb-5">{text}</p>
+                <p className="text-muted text-sm leading-relaxed mb-5">{text}</p>
                 <div className="flex items-center gap-2.5">
                   <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#3B82F6] flex items-center justify-center text-white font-bold text-sm">
                     {name[0]}
                   </div>
                   <div>
-                    <div className="text-sm font-medium text-[var(--text)]">{name}</div>
-                    <div className="text-xs text-[var(--muted)]">{badge} {level}</div>
+                    <div className="text-sm font-medium text-text">{name}</div>
+                    <div className="text-xs text-muted">{badge} {level}</div>
                   </div>
                 </div>
               </div>
@@ -132,7 +132,7 @@ export default function Landing() {
         <div className="max-w-2xl mx-auto">
           <div className="text-5xl mb-6 animate-float">🚀</div>
           <h2 className="text-4xl font-black mb-5">¿Listo para unirte?</h2>
-          <p className="text-[var(--muted)] text-lg mb-8">Únete a miles de traders que ya gestionan sus prop firms con PropTracker</p>
+          <p className="text-muted text-lg mb-8">Únete a miles de traders que ya gestionan sus prop firms con PropTracker</p>
           <Button size="lg" onClick={() => navigate('/registro')} className="shadow-2xl shadow-purple-900/40 mx-auto">
             Crear cuenta gratis
           </Button>
@@ -140,12 +140,12 @@ export default function Landing() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-[var(--border)] px-6 py-8 text-center text-sm text-[var(--muted)]">
+      <footer className="border-t border-border px-6 py-8 text-center text-sm text-muted">
         <div className="flex items-center justify-center gap-2 mb-3">
           <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-[#7C3AED] to-[#3B82F6] flex items-center justify-center">
             <span className="text-white font-black text-xs">PT</span>
           </div>
-          <span className="font-semibold text-[var(--text)]">PropTracker</span>
+          <span className="font-semibold text-text">PropTracker</span>
         </div>
         <p>La plataforma de prop traders más completa · {new Date().getFullYear()}</p>
       </footer>

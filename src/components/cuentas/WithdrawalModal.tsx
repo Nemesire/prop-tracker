@@ -25,22 +25,22 @@ export default function WithdrawalModal({ open, onClose, account }: Props) {
     onClose()
   }
 
-  const inputCls = 'w-full bg-[var(--bg)] border border-[var(--border)] rounded-xl px-3 py-2.5 text-sm text-[var(--text)] focus:outline-none focus:border-[#7C3AED] transition-colors'
+  const inputCls = 'w-full bg-bg border border-border rounded-xl px-3 py-2.5 text-sm text-text focus:outline-none focus:border-[#7C3AED] transition-colors'
 
   return (
     <Modal open={open} onClose={onClose} title="Registrar Retiro">
-      <div className="mb-4 p-3 bg-[var(--bg)] rounded-xl border border-[var(--border)]">
-        <p className="text-xs text-[var(--muted)]">Cuenta</p>
-        <p className="text-sm font-medium text-[var(--text)]">{account.name}</p>
-        <p className="text-xs text-[var(--muted)] mt-1">Retiros anteriores: <span className="text-[#22C55E]">{formatCurrency(account.withdrawals)}</span></p>
+      <div className="mb-4 p-3 bg-bg rounded-xl border border-border">
+        <p className="text-xs text-muted">Cuenta</p>
+        <p className="text-sm font-medium text-text">{account.name}</p>
+        <p className="text-xs text-muted mt-1">Retiros anteriores: <span className="text-[#22C55E]">{formatCurrency(account.withdrawals)}</span></p>
       </div>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-xs font-medium text-[var(--muted)] mb-1.5">Cantidad (€)</label>
+          <label className="block text-xs font-medium text-muted mb-1.5">Cantidad (€)</label>
           <input type="number" min="0.01" step="0.01" className={inputCls} value={amount} onChange={e => setAmount(e.target.value)} required placeholder="0.00" autoFocus />
         </div>
         <div>
-          <label className="block text-xs font-medium text-[var(--muted)] mb-1.5">Nota (opcional)</label>
+          <label className="block text-xs font-medium text-muted mb-1.5">Nota (opcional)</label>
           <input className={inputCls} value={note} onChange={e => setNote(e.target.value)} placeholder="ej. Pago de octubre" />
         </div>
         <div className="flex gap-3">

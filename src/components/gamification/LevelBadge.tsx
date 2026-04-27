@@ -28,14 +28,14 @@ export default function LevelBadge({ xp, showProgress, size = 'md' }: Props) {
       </div>
       {showProgress && (
         <div className="space-y-1">
-          <div className="h-2 bg-[var(--bg)] rounded-full overflow-hidden">
+          <div className="h-2 bg-bg rounded-full overflow-hidden">
             <div
               className="h-full rounded-full transition-all duration-500"
               style={{ width: `${progress}%`, background: `linear-gradient(90deg, ${level.color}, ${level.color}99)` }}
             />
           </div>
           {level.maxXp !== Infinity && (
-            <p className="text-xs text-[var(--muted)]">{toNext} XP para el siguiente nivel</p>
+            <p className="text-xs text-muted">{toNext} XP para el siguiente nivel</p>
           )}
         </div>
       )}

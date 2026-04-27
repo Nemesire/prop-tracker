@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { Calendar, Share2, ChevronRight } from 'lucide-react'
 import { useCommunityStore } from '../store/useCommunityStore'
 import { useAppStore } from '../store/useAppStore'
@@ -145,7 +145,7 @@ export default function Ranking() {
               className={`flex flex-col items-center gap-1 px-5 py-3 rounded-2xl text-sm font-semibold whitespace-nowrap transition-all flex-shrink-0 ${
                 sortBy === tab.value
                   ? 'bg-[#7C3AED] text-white shadow-lg shadow-purple-900/30'
-                  : 'bg-[var(--surface)] border border-[var(--border)] text-[var(--muted)] hover:text-[var(--text)]'
+                  : 'bg-surface border border-border text-muted hover:text-text'
               }`}
             >
               <span className="text-xl">{tab.icon}</span>
@@ -182,7 +182,7 @@ export default function Ranking() {
                   </div>
                   {/* Rank badge */}
                   <div
-                    className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-xs font-black text-white border-2 border-[var(--bg)]"
+                    className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-xs font-black text-white border-2 border-bg"
                     style={{ background: podiumColors[idx] }}
                   >
                     {podiumLabels[idx].replace('#', '')}
@@ -190,8 +190,8 @@ export default function Ranking() {
                 </div>
 
                 <div className="text-center">
-                  <div className={`font-bold text-[var(--text)] ${isCenter ? 'text-sm' : 'text-xs'} truncate max-w-[90px]`}>{entry.displayName}</div>
-                  <div className={`font-semibold ${isCenter ? 'text-base text-[#22C55E]' : 'text-sm text-[var(--muted)]'}`}>
+                  <div className={`font-bold text-text ${isCenter ? 'text-sm' : 'text-xs'} truncate max-w-[90px]`}>{entry.displayName}</div>
+                  <div className={`font-semibold ${isCenter ? 'text-base text-[#22C55E]' : 'text-sm text-muted'}`}>
                     {SORT_FMT(SORT_VALUE(entry, sortBy), sortBy)}
                   </div>
                   <div className="flex justify-center gap-0.5 mt-0.5">
@@ -215,24 +215,24 @@ export default function Ranking() {
         </div>
 
         {/* ── CLASIFICACIÓN (lista completa) ──────────────── */}
-        <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl overflow-hidden">
-          <div className="px-5 py-3.5 border-b border-[var(--border)] flex items-center gap-2">
-            <span className="text-sm font-semibold text-[var(--text)]">📊 Clasificación</span>
-            <span className="text-xs text-[var(--muted)] ml-auto">{total} traders</span>
+        <div className="bg-surface border border-border rounded-2xl overflow-hidden">
+          <div className="px-5 py-3.5 border-b border-border flex items-center gap-2">
+            <span className="text-sm font-semibold text-text">📊 Clasificación</span>
+            <span className="text-xs text-muted ml-auto">{total} traders</span>
           </div>
-          <div className="divide-y divide-[var(--border)]">
+          <div className="divide-y divide-border">
             {sorted.map((entry) => {
               const isMe = entry.userId === currentUser?.id
               const val  = SORT_VALUE(entry, sortBy)
               const earnedBadges = BADGES.filter(b => entry.badges.includes(b.id)).slice(0, 2)
-              const rankColor = entry.rank === 1 ? '#F59E0B' : entry.rank === 2 ? '#9CA3AF' : entry.rank === 3 ? '#CD7C3F' : 'var(--muted)'
+              const rankColor = entry.rank === 1 ? '#F59E0B' : entry.rank === 2 ? '#9CA3AF' : entry.rank === 3 ? '#CD7C3F' : 'var(--color-muted)'
 
               return (
                 <div
                   key={entry.userId}
                   onClick={() => navigate(`/perfil/${entry.username}`)}
                   className={`flex items-center gap-3 px-5 py-3.5 cursor-pointer transition-colors ${
-                    isMe ? 'bg-[#7C3AED]/10 hover:bg-[#7C3AED]/15' : 'hover:bg-[var(--surface2)]'
+                    isMe ? 'bg-[#7C3AED]/10 hover:bg-[#7C3AED]/15' : 'hover:bg-surface2'
                   }`}
                 >
                   {/* Rank */}
@@ -246,11 +246,11 @@ export default function Ranking() {
                   {/* Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="text-sm font-semibold text-[var(--text)] truncate">{entry.displayName}</span>
+                      <span className="text-sm font-semibold text-text truncate">{entry.displayName}</span>
                       {isMe && <span className="text-[10px] bg-[#7C3AED]/20 text-[#7C3AED] px-1.5 py-0.5 rounded-full font-bold">Tú</span>}
                       {earnedBadges.map(b => <span key={b.id} className="text-xs">{b.icon}</span>)}
                     </div>
-                    <div className="text-xs text-[var(--muted)]">@{entry.username}</div>
+                    <div className="text-xs text-muted">@{entry.username}</div>
                   </div>
 
                   {/* Value */}

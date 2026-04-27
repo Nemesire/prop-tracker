@@ -1,4 +1,4 @@
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
+﻿import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 import type { Account } from '../../types'
 import { buildCapitalChartData } from '../../utils/calculations'
 
@@ -17,14 +17,14 @@ export default function CapitalChart({ accounts, hideValues }: Props) {
 
   // Lee las CSS vars en tiempo de render para que cambien con el tema
   const style  = getComputedStyle(document.documentElement)
-  const border = style.getPropertyValue('--border').trim()   || '#2D2D4E'
-  const muted  = style.getPropertyValue('--muted').trim()    || '#8888AA'
-  const surface= style.getPropertyValue('--surface').trim()  || '#1A1A2E'
-  const text   = style.getPropertyValue('--text').trim()     || '#F8F8FF'
+  const border = style.getPropertyValue('--color-border').trim() || '#2D2D4E'
+  const muted  = style.getPropertyValue('--color-muted').trim()  || '#8888AA'
+  const surface= style.getPropertyValue('--color-surface').trim()|| '#1A1A2E'
+  const text   = style.getPropertyValue('--color-text').trim()   || '#F8F8FF'
 
   if (data.length === 0) {
     return (
-      <div className="flex items-center justify-center h-48 text-[var(--muted)] text-sm">
+      <div className="flex items-center justify-center h-48 text-muted text-sm">
         Añade cuentas para ver la evolución del capital
       </div>
     )

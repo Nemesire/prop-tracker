@@ -1,123 +1,109 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #7C3AED;
+  /* ── Brand colors ─────────────────────────────────── */
+  --color-primary:       #7C3AED;
   --color-primary-light: #9D5FF0;
-  --color-primary-dark: #5B21B6;
-  --color-success: #22C55E;
-  --color-danger: #EF4444;
-  --color-warning: #F59E0B;
-  --color-info: #3B82F6;
+  --color-primary-dark:  #5B21B6;
+  --color-success:       #22C55E;
+  --color-danger:        #EF4444;
+  --color-warning:       #F59E0B;
+  --color-info:          #3B82F6;
+
+  /* ── Theme colors — dark defaults ─────────────────── */
+  --color-bg:       #0F0F1A;
+  --color-surface:  #1A1A2E;
+  --color-surface2: #22223A;
+  --color-border:   #2D2D4E;
+  --color-text:     #F8F8FF;
+  --color-muted:    #8888AA;
+  --color-input:    #0F0F1A;
+
   --font-sans: 'Inter', system-ui, sans-serif;
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
 }
 
-/* ── Dark theme (default) ── */
-:root, html.dark {
-  color-scheme: dark;
-  --bg:        #0F0F1A;
-  --surface:   #1A1A2E;
-  --surface2:  #22223A;
-  --border:    #2D2D4E;
-  --text:      #F8F8FF;
-  --muted:     #8888AA;
-  --scrollbar-track: #1A1A2E;
-  --scrollbar-thumb: #2D2D4E;
-  --input-bg:  #0F0F1A;
-}
-
-/* ── Light theme ── */
+/* ── Light theme override ──────────────────────────── */
+/* html.light tiene mayor especificidad que :root → gana */
 html.light {
   color-scheme: light;
-  --bg:        #F1F2F7;
-  --surface:   #FFFFFF;
-  --surface2:  #F5F5FA;
-  --border:    #E2E3EF;
-  --text:      #111128;
-  --muted:     #6B7280;
-  --scrollbar-track: #F1F2F7;
-  --scrollbar-thumb: #D1D5DB;
-  --input-bg:  #F5F5FA;
+  --color-bg:       #F1F2F7;
+  --color-surface:  #FFFFFF;
+  --color-surface2: #F0F0F8;
+  --color-border:   #D1D5E8;
+  --color-text:     #111128;
+  --color-muted:    #5B6080;
+  --color-input:    #F5F5FA;
 }
 
-* { box-sizing: border-box; }
+html.dark, :root {
+  color-scheme: dark;
+}
 
+/* ── Base reset ────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
 html, body, #root { height: 100%; margin: 0; padding: 0; }
 
 body {
-  background-color: var(--bg);
-  color: var(--text);
+  background-color: var(--color-bg);
+  color: var(--color-text);
   font-family: 'Inter', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
-  transition: background-color 0.25s, color 0.25s;
+  transition: background-color 0.2s, color 0.2s;
 }
 
-/* Scrollbar */
+/* ── Scrollbar ─────────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: var(--scrollbar-track); }
-::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
+::-webkit-scrollbar-track { background: var(--color-surface); }
+::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: #7C3AED; }
 
-/* ── Semantic theme utilities ── */
-.bg-theme        { background-color: var(--bg); }
-.bg-surface      { background-color: var(--surface); }
-.bg-surface2     { background-color: var(--surface2); }
-.border-theme    { border-color: var(--border); }
-.text-theme      { color: var(--text); }
-.text-muted      { color: var(--muted); }
-.input-bg        { background-color: var(--input-bg); }
+/* ── Input / Select / Textarea ─────────────────────── */
+input, select, textarea { color-scheme: inherit; }
 
-/* Card / panel */
-.card {
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  transition: background-color 0.25s, border-color 0.25s;
-}
-.card:hover { border-color: rgba(124,58,237,0.4); }
-
-/* Input */
 .input-base {
-  background-color: var(--input-bg);
-  border: 1px solid var(--border);
-  color: var(--text);
+  background-color: var(--color-input);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
   border-radius: 12px;
   padding: 10px 14px;
   font-size: 14px;
   width: 100%;
   outline: none;
-  transition: border-color 0.15s, background-color 0.25s, color 0.25s;
+  transition: border-color 0.15s, background-color 0.2s, color 0.2s;
 }
 .input-base:focus { border-color: #7C3AED; }
-.input-base::placeholder { color: var(--muted); }
+.input-base::placeholder { color: var(--color-muted); }
 .input-base option {
-  background-color: var(--surface);
-  color: var(--text);
+  background-color: var(--color-surface);
+  color: var(--color-text);
 }
 
-/* Asegura que todos los inputs/selects/textareas hereden el tema */
-input, select, textarea {
-  color-scheme: inherit;
+/* ── Card ──────────────────────────────────────────── */
+.card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  transition: background-color 0.2s, border-color 0.2s;
 }
+.card:hover { border-color: rgba(124,58,237,0.4); }
 
-/* Shared */
+/* ── Shared utilities ──────────────────────────────── */
 .gradient-text {
   background: linear-gradient(135deg, #7C3AED, #A855F7, #3B82F6);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
-.card-glow    { box-shadow: 0 0 20px rgba(124,58,237,0.15); }
-.badge-glow   { box-shadow: 0 0 12px rgba(124,58,237,0.4); }
-.animate-float { animation: float 3s ease-in-out infinite; }
+.card-glow  { box-shadow: 0 0 20px rgba(124,58,237,0.15); }
+.badge-glow { box-shadow: 0 0 12px rgba(124,58,237,0.4); }
 
+/* ── Animations ────────────────────────────────────── */
 @keyframes float {
   0%, 100% { transform: translateY(0); }
   50%       { transform: translateY(-8px); }
 }
+.animate-float { animation: float 3s ease-in-out infinite; }
+
 @keyframes fade-in {
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }

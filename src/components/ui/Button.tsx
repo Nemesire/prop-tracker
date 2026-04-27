@@ -9,8 +9,8 @@ interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variants = {
   primary: 'bg-[#7C3AED] hover:bg-[#6D28D9] text-white shadow-lg shadow-purple-900/30',
-  secondary: 'bg-[var(--surface2)] hover:bg-[var(--border)] text-[var(--text)] border border-[var(--border)]',
-  ghost: 'bg-transparent hover:bg-[var(--surface2)] text-[var(--muted)] hover:text-[var(--text)]',
+  secondary: 'bg-surface2 hover:bg-border text-text border border-border',
+  ghost: 'bg-transparent hover:bg-surface2 text-muted hover:text-text',
   danger: 'bg-[#EF4444] hover:bg-[#DC2626] text-white',
   success: 'bg-[#22C55E] hover:bg-[#16A34A] text-white',
 }

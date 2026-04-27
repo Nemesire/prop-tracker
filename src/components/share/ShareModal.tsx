@@ -61,31 +61,31 @@ export default function ShareModal({ open, onClose, user, accounts }: Props) {
           <div>
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#7C3AED] to-[#3B82F6] flex items-center justify-center text-xs font-black">PT</div>
-              <span className="font-bold text-[var(--text)]">PropTracker</span>
+              <span className="font-bold text-text">PropTracker</span>
             </div>
-            <p className="text-[var(--muted)] text-xs mt-1">proptracker.community</p>
+            <p className="text-muted text-xs mt-1">proptracker.community</p>
           </div>
           <div className="text-right">
-            <div className="text-sm font-semibold text-[var(--text)]">{user.displayName}</div>
+            <div className="text-sm font-semibold text-text">{user.displayName}</div>
             <div className="text-xs" style={{ color: level.color }}>{level.icon} {level.name}</div>
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div className="bg-white/5 rounded-xl p-3 border border-white/10">
-            <div className="text-xs text-[var(--muted)] mb-1">Retiros Totales</div>
+            <div className="text-xs text-muted mb-1">Retiros Totales</div>
             <div className="text-xl font-bold text-[#22C55E]">{formatCurrency(totalWithdrawals)}</div>
           </div>
           <div className="bg-white/5 rounded-xl p-3 border border-white/10">
-            <div className="text-xs text-[var(--muted)] mb-1">ROI Total</div>
+            <div className="text-xs text-muted mb-1">ROI Total</div>
             <div className={`text-xl font-bold ${roi >= 0 ? 'text-[#22C55E]' : 'text-[#EF4444]'}`}>{formatPercent(roi)}</div>
           </div>
           <div className="bg-white/5 rounded-xl p-3 border border-white/10">
-            <div className="text-xs text-[var(--muted)] mb-1">Beneficio Neto</div>
+            <div className="text-xs text-muted mb-1">Beneficio Neto</div>
             <div className={`text-xl font-bold ${profit >= 0 ? 'text-[#22C55E]' : 'text-[#EF4444]'}`}>{formatCurrency(profit)}</div>
           </div>
           <div className="bg-white/5 rounded-xl p-3 border border-white/10">
-            <div className="text-xs text-[var(--muted)] mb-1">Cuentas Live</div>
+            <div className="text-xs text-muted mb-1">Cuentas Live</div>
             <div className="text-xl font-bold text-[#7C3AED]">{liveAccounts}</div>
           </div>
         </div>
@@ -99,7 +99,7 @@ export default function ShareModal({ open, onClose, user, accounts }: Props) {
         )}
 
         <div className="mt-4 pt-4 border-t border-white/10 text-center">
-          <p className="text-xs text-[var(--muted)]">Únete a la comunidad de prop traders 🚀</p>
+          <p className="text-xs text-muted">Únete a la comunidad de prop traders 🚀</p>
         </div>
       </div>
 

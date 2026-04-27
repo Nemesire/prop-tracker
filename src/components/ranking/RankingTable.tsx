@@ -22,25 +22,25 @@ function RankDelta({ current, previous }: { current: number; previous?: number }
   const delta = previous - current
   if (delta > 0) return <span className="text-[10px] text-[#22C55E] flex items-center"><TrendingUp size={10} />+{delta}</span>
   if (delta < 0) return <span className="text-[10px] text-[#EF4444] flex items-center"><TrendingDown size={10} />{delta}</span>
-  return <Minus size={10} className="text-[var(--muted)]" />
+  return <Minus size={10} className="text-muted" />
 }
 
 export default function RankingTable({ entries, currentUserId }: Props) {
   const navigate = useNavigate()
 
   return (
-    <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl overflow-hidden">
+    <div className="bg-surface border border-border rounded-2xl overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-[var(--border)]">
-              <th className="text-left text-xs font-medium text-[var(--muted)] px-5 py-3 w-16">#</th>
-              <th className="text-left text-xs font-medium text-[var(--muted)] px-5 py-3">TRADER</th>
-              <th className="text-left text-xs font-medium text-[var(--muted)] px-5 py-3">RETIROS</th>
-              <th className="text-left text-xs font-medium text-[var(--muted)] px-5 py-3">BENEFICIO</th>
-              <th className="text-left text-xs font-medium text-[var(--muted)] px-5 py-3">ROI</th>
-              <th className="text-left text-xs font-medium text-[var(--muted)] px-5 py-3">APROBADAS</th>
-              <th className="text-left text-xs font-medium text-[var(--muted)] px-5 py-3">CUENTAS</th>
+            <tr className="border-b border-border">
+              <th className="text-left text-xs font-medium text-muted px-5 py-3 w-16">#</th>
+              <th className="text-left text-xs font-medium text-muted px-5 py-3">TRADER</th>
+              <th className="text-left text-xs font-medium text-muted px-5 py-3">RETIROS</th>
+              <th className="text-left text-xs font-medium text-muted px-5 py-3">BENEFICIO</th>
+              <th className="text-left text-xs font-medium text-muted px-5 py-3">ROI</th>
+              <th className="text-left text-xs font-medium text-muted px-5 py-3">APROBADAS</th>
+              <th className="text-left text-xs font-medium text-muted px-5 py-3">CUENTAS</th>
             </tr>
           </thead>
           <tbody>
@@ -52,7 +52,7 @@ export default function RankingTable({ entries, currentUserId }: Props) {
                 <tr
                   key={entry.userId}
                   onClick={() => navigate(`/perfil/${entry.username}`)}
-                  className={`border-b border-[var(--border)] cursor-pointer transition-colors ${isMe ? 'bg-[#7C3AED]/10 hover:bg-[#7C3AED]/15' : 'hover:bg-[var(--surface2)]/50'}`}
+                  className={`border-b border-border cursor-pointer transition-colors ${isMe ? 'bg-[#7C3AED]/10 hover:bg-[#7C3AED]/15' : 'hover:bg-surface2/50'}`}
                 >
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-1">
@@ -67,11 +67,11 @@ export default function RankingTable({ entries, currentUserId }: Props) {
                       <Avatar name={entry.displayName} size="sm" level={entry.level} />
                       <div>
                         <div className="flex items-center gap-1.5">
-                          <span className="font-medium text-[var(--text)]">{entry.displayName}</span>
+                          <span className="font-medium text-text">{entry.displayName}</span>
                           {isMe && <span className="text-[10px] bg-[#7C3AED]/20 text-[#7C3AED] px-1.5 py-0.5 rounded-full">Tú</span>}
                         </div>
                         <div className="flex items-center gap-1 mt-0.5">
-                          <span className="text-xs text-[var(--muted)]">@{entry.username}</span>
+                          <span className="text-xs text-muted">@{entry.username}</span>
                           {earnedBadges.map(b => <span key={b.id} title={b.name} className="text-xs">{b.icon}</span>)}
                         </div>
                       </div>
@@ -80,8 +80,8 @@ export default function RankingTable({ entries, currentUserId }: Props) {
                   <td className="px-5 py-4 font-medium text-[#22C55E]">{formatCurrency(entry.totalWithdrawals)}</td>
                   <td className={`px-5 py-4 font-medium ${entry.totalProfit >= 0 ? 'text-[#22C55E]' : 'text-[#EF4444]'}`}>{formatCurrency(entry.totalProfit)}</td>
                   <td className={`px-5 py-4 font-medium ${entry.roi >= 0 ? 'text-[#22C55E]' : 'text-[#EF4444]'}`}>{entry.roi.toFixed(1)}%</td>
-                  <td className="px-5 py-4 text-[var(--text)]">{entry.approvedEvaluations}</td>
-                  <td className="px-5 py-4 text-[var(--text)]">{entry.activeAccounts} activas</td>
+                  <td className="px-5 py-4 text-text">{entry.approvedEvaluations}</td>
+                  <td className="px-5 py-4 text-text">{entry.activeAccounts} activas</td>
                 </tr>
               )
             })}

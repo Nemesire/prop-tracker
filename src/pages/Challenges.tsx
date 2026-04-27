@@ -24,24 +24,24 @@ export default function Challenges() {
     .reduce((s, ch) => s + ch.xpReward, 0)
 
   const filterBtnCls = (active: boolean) =>
-    `flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-sm font-medium transition-all ${active ? 'bg-[#7C3AED] text-white' : 'bg-[var(--surface)] border border-[var(--border)] text-[var(--muted)] hover:text-[var(--text)]'}`
+    `flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-sm font-medium transition-all ${active ? 'bg-[#7C3AED] text-white' : 'bg-surface border border-border text-muted hover:text-text'}`
 
   return (
     <div className="p-6 space-y-6 fade-in">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--text)]">Challenges</h1>
-          <p className="text-sm text-[var(--muted)] mt-0.5">Completa retos y gana XP</p>
+          <h1 className="text-2xl font-bold text-text">Challenges</h1>
+          <p className="text-sm text-muted mt-0.5">Completa retos y gana XP</p>
         </div>
         <div className="flex items-center gap-4">
           <div className="text-center">
             <div className="text-xl font-bold text-[#7C3AED]">{completedCount}</div>
-            <div className="text-xs text-[var(--muted)]">Completados</div>
+            <div className="text-xs text-muted">Completados</div>
           </div>
-          <div className="w-px h-8 bg-[var(--border)]" />
+          <div className="w-px h-8 bg-border" />
           <div className="text-center">
             <div className="text-xl font-bold text-[#F59E0B]">+{totalXpEarned}</div>
-            <div className="text-xs text-[var(--muted)]">XP ganado</div>
+            <div className="text-xs text-muted">XP ganado</div>
           </div>
         </div>
       </div>
@@ -76,7 +76,7 @@ export default function Challenges() {
       ) : (
         <div className="text-center py-16">
           <div className="text-5xl mb-4">🎯</div>
-          <p className="text-[var(--muted)]">
+          <p className="text-muted">
             {filter === 'completed' ? '¡Aún no has completado ningún reto!' : 'No hay retos con este filtro'}
           </p>
         </div>

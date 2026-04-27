@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+﻿import { useState, useRef } from 'react'
 import { Sun, Moon, User, Globe, Shield, Download, Camera, Check } from 'lucide-react'
 import { useAppStore } from '../store/useAppStore'
 import type { Theme } from '../store/useAppStore'
@@ -67,15 +67,15 @@ export default function Configuracion() {
 
   /* ── Shared classes ───────────────────────────────────── */
   const inputCls  = 'input-base'
-  const labelCls  = 'block text-xs font-medium text-[var(--muted)] mb-1.5'
-  const cardCls   = 'bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-6'
-  const headingCls = 'text-base font-semibold text-[var(--text)] mb-4'
+  const labelCls  = 'block text-xs font-medium text-muted mb-1.5'
+  const cardCls   = 'bg-surface border border-border rounded-2xl p-6'
+  const headingCls = 'text-base font-semibold text-text mb-4'
 
   return (
     <div className="p-6 fade-in max-w-3xl">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-[var(--text)]">Configuración</h1>
-        <p className="text-sm text-[var(--muted)] mt-0.5">Personaliza tu experiencia en PropTracker</p>
+        <h1 className="text-2xl font-bold text-text">Configuración</h1>
+        <p className="text-sm text-muted mt-0.5">Personaliza tu experiencia en PropTracker</p>
       </div>
 
       <div className="flex gap-6">
@@ -89,7 +89,7 @@ export default function Configuracion() {
               className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left ${
                 section === id
                   ? 'bg-[#7C3AED]/15 text-[#7C3AED] border border-[#7C3AED]/30'
-                  : 'text-[var(--muted)] hover:bg-[var(--surface2)] hover:text-[var(--text)]'
+                  : 'text-muted hover:bg-surface2 hover:text-text'
               }`}
             >
               <Icon size={16} />
@@ -119,8 +119,8 @@ export default function Configuracion() {
                     <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-[var(--text)]">Sube tu foto</p>
-                    <p className="text-xs text-[var(--muted)] mt-0.5">JPG, PNG o GIF · máximo 5 MB</p>
+                    <p className="text-sm font-medium text-text">Sube tu foto</p>
+                    <p className="text-xs text-muted mt-0.5">JPG, PNG o GIF · máximo 5 MB</p>
                     <button
                       type="button"
                       onClick={() => fileRef.current?.click()}
@@ -152,7 +152,7 @@ export default function Configuracion() {
                     <label className={labelCls}>Usuario</label>
                     <input className={inputCls} value={`@${currentUser.username}`} disabled
                       style={{ opacity: 0.5, cursor: 'not-allowed' }} />
-                    <p className="text-xs text-[var(--muted)] mt-1">El nombre de usuario no se puede cambiar</p>
+                    <p className="text-xs text-muted mt-1">El nombre de usuario no se puede cambiar</p>
                   </div>
                   <div>
                     <label className={labelCls}>Biografía</label>
@@ -199,7 +199,7 @@ export default function Configuracion() {
                       className={`relative flex flex-col items-start gap-3 p-4 rounded-2xl border-2 text-left transition-all ${
                         active
                           ? 'border-[#7C3AED] bg-[#7C3AED]/10'
-                          : 'border-[var(--border)] bg-[var(--surface2)] hover:border-[#7C3AED]/40'
+                          : 'border-border bg-surface2 hover:border-[#7C3AED]/40'
                       }`}
                     >
                       {active && (
@@ -207,18 +207,18 @@ export default function Configuracion() {
                           <Check size={11} className="text-white" />
                         </span>
                       )}
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${active ? 'bg-[#7C3AED]/20' : 'bg-[var(--surface)]'}`}>
-                        <Icon size={20} className={active ? 'text-[#7C3AED]' : 'text-[var(--muted)]'} />
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${active ? 'bg-[#7C3AED]/20' : 'bg-surface'}`}>
+                        <Icon size={20} className={active ? 'text-[#7C3AED]' : 'text-muted'} />
                       </div>
                       <div>
-                        <div className={`font-semibold text-sm ${active ? 'text-[#7C3AED]' : 'text-[var(--text)]'}`}>{opt.label}</div>
-                        <div className="text-xs text-[var(--muted)] mt-0.5 leading-snug">{opt.desc}</div>
+                        <div className={`font-semibold text-sm ${active ? 'text-[#7C3AED]' : 'text-text'}`}>{opt.label}</div>
+                        <div className="text-xs text-muted mt-0.5 leading-snug">{opt.desc}</div>
                       </div>
                     </button>
                   )
                 })}
               </div>
-              <p className="text-xs text-[var(--muted)] mt-4">El tema se guarda automáticamente y persiste entre sesiones.</p>
+              <p className="text-xs text-muted mt-4">El tema se guarda automáticamente y persiste entre sesiones.</p>
             </div>
           )}
 
@@ -233,13 +233,13 @@ export default function Configuracion() {
                   ].map(item => (
                     <label key={item.label} className="flex items-center justify-between cursor-pointer gap-4">
                       <div>
-                        <div className="text-sm font-medium text-[var(--text)]">{item.label}</div>
-                        <div className="text-xs text-[var(--muted)] mt-0.5">{item.desc}</div>
+                        <div className="text-sm font-medium text-text">{item.label}</div>
+                        <div className="text-xs text-muted mt-0.5">{item.desc}</div>
                       </div>
                       <button
                         type="button"
                         onClick={() => item.onChange(!item.value)}
-                        className={`relative w-11 h-6 rounded-full transition-colors flex-shrink-0 ${item.value ? 'bg-[#7C3AED]' : 'bg-[var(--border)]'}`}
+                        className={`relative w-11 h-6 rounded-full transition-colors flex-shrink-0 ${item.value ? 'bg-[#7C3AED]' : 'bg-border'}`}
                       >
                         <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${item.value ? 'translate-x-5' : ''}`} />
                       </button>
@@ -258,14 +258,14 @@ export default function Configuracion() {
             <div className="space-y-4">
               <div className={cardCls}>
                 <h2 className={headingCls}>Exportar datos</h2>
-                <p className="text-sm text-[var(--muted)] mb-4">Descarga todos tus datos de cuentas en formato CSV.</p>
+                <p className="text-sm text-muted mb-4">Descarga todos tus datos de cuentas en formato CSV.</p>
                 <Button variant="secondary" onClick={handleExportCSV}>
                   <Download size={16} /> Exportar CSV
                 </Button>
               </div>
               <div className={cardCls}>
                 <h2 className="text-base font-semibold text-[#EF4444] mb-2">Zona de peligro</h2>
-                <p className="text-sm text-[var(--muted)] mb-4">
+                <p className="text-sm text-muted mb-4">
                   Estas acciones son irreversibles. Procede con cuidado.
                 </p>
                 <Button variant="danger" onClick={() => {

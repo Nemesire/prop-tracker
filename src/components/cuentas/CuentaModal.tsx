@@ -44,8 +44,8 @@ export default function CuentaModal({ open, onClose, account }: Props) {
     onClose()
   }
 
-  const inputCls = 'w-full bg-[var(--bg)] border border-[var(--border)] rounded-xl px-3 py-2.5 text-sm text-[var(--text)] focus:outline-none focus:border-[#7C3AED] transition-colors'
-  const labelCls = 'block text-xs font-medium text-[var(--muted)] mb-1.5'
+  const inputCls = 'w-full bg-bg border border-border rounded-xl px-3 py-2.5 text-sm text-text focus:outline-none focus:border-[#7C3AED] transition-colors'
+  const labelCls = 'block text-xs font-medium text-muted mb-1.5'
 
   return (
     <Modal open={open} onClose={onClose} title={account ? 'Editar Cuenta' : 'Nueva Cuenta'} size="lg">

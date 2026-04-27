@@ -31,9 +31,9 @@ export default function CuentaRow({ account: acc }: Props) {
 
   return (
     <>
-      <tr className="border-b border-[var(--border)] hover:bg-[var(--surface2)]/40 transition-colors group">
+      <tr className="border-b border-border hover:bg-surface2/40 transition-colors group">
         <td className="px-5 py-4">
-          <span className="font-mono text-sm text-[var(--text)]">{acc.name}</span>
+          <span className="font-mono text-sm text-text">{acc.name}</span>
         </td>
         <td className="px-5 py-4">
           <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${TYPE_STYLES[acc.type]}`}>
@@ -45,7 +45,7 @@ export default function CuentaRow({ account: acc }: Props) {
             {STATUS_LABELS[acc.status]}
           </span>
         </td>
-        <td className="px-5 py-4 text-sm text-[var(--muted)]">{acc.company}</td>
+        <td className="px-5 py-4 text-sm text-muted">{acc.company}</td>
         <td className="px-5 py-4 text-sm text-[#EF4444]">{formatCurrency(acc.cost)}</td>
         <td className="px-5 py-4 text-sm text-[#22C55E]">{formatCurrency(acc.withdrawals)}</td>
         <td className={`px-5 py-4 text-sm font-medium ${benefit >= 0 ? 'text-[#22C55E]' : 'text-[#EF4444]'}`}>
@@ -54,24 +54,24 @@ export default function CuentaRow({ account: acc }: Props) {
         <td className="px-5 py-4">
           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
             {acc.type === 'evaluacion' && acc.status === 'activa' && (
-              <button title="Renovar" onClick={() => updateAccount(acc.id, { cost: acc.cost })} className="p-1.5 rounded-lg hover:bg-[var(--surface2)] text-[var(--muted)] hover:text-[var(--text)] transition-colors">
+              <button title="Renovar" onClick={() => updateAccount(acc.id, { cost: acc.cost })} className="p-1.5 rounded-lg hover:bg-surface2 text-muted hover:text-text transition-colors">
                 <RefreshCw size={14} />
               </button>
             )}
             {acc.type === 'evaluacion' && acc.status === 'activa' && (
-              <button title="Aprobar evaluación → Live" onClick={() => approveEvaluation(acc.id)} className="p-1.5 rounded-lg hover:bg-[var(--surface2)] text-[var(--muted)] hover:text-[#22C55E] transition-colors">
+              <button title="Aprobar evaluación → Live" onClick={() => approveEvaluation(acc.id)} className="p-1.5 rounded-lg hover:bg-surface2 text-muted hover:text-[#22C55E] transition-colors">
                 <Check size={14} />
               </button>
             )}
             {acc.type === 'live' && acc.status === 'activa' && (
-              <button title="Registrar retiro" onClick={() => setWithdrawOpen(true)} className="p-1.5 rounded-lg hover:bg-[var(--surface2)] text-[var(--muted)] hover:text-[#22C55E] transition-colors">
+              <button title="Registrar retiro" onClick={() => setWithdrawOpen(true)} className="p-1.5 rounded-lg hover:bg-surface2 text-muted hover:text-[#22C55E] transition-colors">
                 <DollarSign size={14} />
               </button>
             )}
-            <button title="Suspender" onClick={() => updateAccount(acc.id, { status: 'suspendida' })} className="p-1.5 rounded-lg hover:bg-[var(--surface2)] text-[var(--muted)] hover:text-[#EF4444] transition-colors">
+            <button title="Suspender" onClick={() => updateAccount(acc.id, { status: 'suspendida' })} className="p-1.5 rounded-lg hover:bg-surface2 text-muted hover:text-[#EF4444] transition-colors">
               <Ban size={14} />
             </button>
-            <button title="Editar" onClick={() => setEditOpen(true)} className="p-1.5 rounded-lg hover:bg-[var(--surface2)] text-[var(--muted)] hover:text-[var(--text)] transition-colors">
+            <button title="Editar" onClick={() => setEditOpen(true)} className="p-1.5 rounded-lg hover:bg-surface2 text-muted hover:text-text transition-colors">
               <Pencil size={14} />
             </button>
           </div>
