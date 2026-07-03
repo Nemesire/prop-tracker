@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
 import {
   Users, Link2, Plus, Trash2, Copy, Check, UserCheck, UserX,
-  RefreshCw, Mail, Shield, Clock, AlertTriangle,
+  RefreshCw, Mail, Shield, Clock, AlertTriangle, Pencil, KeyRound, Save, X,
 } from 'lucide-react'
 import { useAdminStore, STATUS_LABELS, STATUS_COLORS, ROLE_LABELS } from '../../store/useAdminStore'
-import type { UserStatus, UserRole } from '../../types'
+import type { UserStatus, UserRole, CommunityMember } from '../../types'
 
 type Tab = 'members' | 'invites'
 
@@ -112,7 +112,7 @@ function AddMemberForm({ onClose }: { onClose: () => void }) {
 
 /* ── Tab Miembros ──────────────────────────────── */
 function MembersTab() {
-  const { members, updateMember, deleteMember } = useAdminStore()
+  const { members, deleteMember } = useAdminStore()
   const [showAdd, setShowAdd]   = useState(false)
   const [search, setSearch]     = useState('')
   const [confirmDel, setConfirmDel] = useState<string | null>(null)
@@ -175,82 +175,175 @@ function MembersTab() {
       ) : (
         <div className="space-y-2">
           {filtered.map(m => (
-            <div key={m.id} className="bg-surface border border-border rounded-xl px-4 py-3 flex items-center gap-3 group hover:border-[#7C3AED]/30 transition-all">
-              {/* Avatar */}
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#3B82F6] flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-                {m.displayName[0].toUpperCase()}
-              </div>
-
-              {/* Info */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-sm font-semibold text-text">{m.displayName}</span>
-                  <span className="text-xs text-muted">@{m.username}</span>
-                  <RoleBadge role={m.role} />
-                  <StatusBadge status={m.status} />
-                </div>
-                <div className="flex items-center gap-3 mt-0.5">
-                  <span className="text-xs text-muted flex items-center gap-1">
-                    <Mail size={10} /> {m.email}
-                  </span>
-                  <span className="text-xs text-muted flex items-center gap-1">
-                    <Clock size={10} /> {fmtDate(m.joinDate)}
-                  </span>
-                </div>
-                {m.notes && <p className="text-xs text-muted italic mt-0.5 truncate">{m.notes}</p>}
-              </div>
-
-              {/* Acciones */}
-              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                {m.status !== 'active' && (
-                  <button
-                    onClick={() => updateMember(m.id, { status: 'active' })}
-                    title="Activar"
-                    className="w-7 h-7 rounded-lg flex items-center justify-center text-muted hover:text-[#22C55E] hover:bg-[#22C55E]/10 transition-colors"
-                  >
-                    <UserCheck size={14} />
-                  </button>
-                )}
-                {m.status !== 'suspended' && (
-                  <button
-                    onClick={() => updateMember(m.id, { status: 'suspended' })}
-                    title="Suspender"
-                    className="w-7 h-7 rounded-lg flex items-center justify-center text-muted hover:text-[#F59E0B] hover:bg-[#F59E0B]/10 transition-colors"
-                  >
-                    <UserX size={14} />
-                  </button>
-                )}
-                {m.role !== 'admin' && (
-                  <button
-                    onClick={() => updateMember(m.id, { role: 'admin' })}
-                    title="Hacer admin"
-                    className="w-7 h-7 rounded-lg flex items-center justify-center text-muted hover:text-[#7C3AED] hover:bg-[#7C3AED]/10 transition-colors"
-                  >
-                    <Shield size={14} />
-                  </button>
-                )}
-                {confirmDel === m.id ? (
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => { deleteMember(m.id); setConfirmDel(null) }}
-                      className="text-xs px-2 py-0.5 bg-[#EF4444] text-white rounded-lg font-semibold"
-                    >Sí</button>
-                    <button
-                      onClick={() => setConfirmDel(null)}
-                      className="text-xs px-2 py-0.5 border border-border rounded-lg text-muted"
-                    >No</button>
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => setConfirmDel(m.id)}
-                    className="w-7 h-7 rounded-lg flex items-center justify-center text-muted hover:text-[#EF4444] hover:bg-[#EF4444]/10 transition-colors"
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                )}
-              </div>
-            </div>
+            <MemberRow
+              key={m.id}
+              m={m}
+              confirmDel={confirmDel === m.id}
+              onAskDel={() => setConfirmDel(m.id)}
+              onCancelDel={() => setConfirmDel(null)}
+              onConfirmDel={() => { deleteMember(m.id); setConfirmDel(null) }}
+            />
           ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* ── Fila de miembro (con edición y cambio de contraseña) ── */
+function MemberRow({ m, confirmDel, onAskDel, onCancelDel, onConfirmDel }: {
+  m: CommunityMember
+  confirmDel: boolean
+  onAskDel: () => void
+  onCancelDel: () => void
+  onConfirmDel: () => void
+}) {
+  const { updateMember, setMemberPassword } = useAdminStore()
+  const [panel, setPanel]   = useState<'none' | 'edit' | 'password'>('none')
+  const [editName, setEditName]   = useState(m.displayName)
+  const [editEmail, setEditEmail] = useState(m.email)
+  const [newPass, setNewPass]     = useState('')
+  const [busy, setBusy]           = useState(false)
+  const [msg, setMsg]             = useState('')
+  const [err, setErr]             = useState('')
+
+  async function saveEdit() {
+    setBusy(true); setErr(''); setMsg('')
+    try {
+      await updateMember(m.id, { displayName: editName.trim(), email: editEmail.trim().toLowerCase() })
+      setMsg('Datos actualizados'); setPanel('none')
+      setTimeout(() => setMsg(''), 2500)
+    } catch (e) { setErr((e as Error).message) } finally { setBusy(false) }
+  }
+
+  async function savePass() {
+    if (newPass.length < 6) { setErr('Mínimo 6 caracteres'); return }
+    setBusy(true); setErr(''); setMsg('')
+    try {
+      await setMemberPassword(m.id, newPass)
+      setMsg('Contraseña cambiada'); setPanel('none'); setNewPass('')
+      setTimeout(() => setMsg(''), 2500)
+    } catch (e) { setErr((e as Error).message) } finally { setBusy(false) }
+  }
+
+  const iconBtn = 'w-7 h-7 rounded-lg flex items-center justify-center text-muted transition-colors'
+
+  return (
+    <div className="bg-surface border border-border rounded-xl px-4 py-3 group hover:border-[#7C3AED]/30 transition-all">
+      <div className="flex items-center gap-3">
+        {/* Avatar */}
+        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#3B82F6] flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+          {m.displayName[0].toUpperCase()}
+        </div>
+
+        {/* Info */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-sm font-semibold text-text">{m.displayName}</span>
+            <span className="text-xs text-muted">@{m.username}</span>
+            <RoleBadge role={m.role} />
+            <StatusBadge status={m.status} />
+          </div>
+          <div className="flex items-center gap-3 mt-0.5">
+            <span className="text-xs text-muted flex items-center gap-1">
+              <Mail size={10} /> {m.email}
+            </span>
+            <span className="text-xs text-muted flex items-center gap-1">
+              <Clock size={10} /> {fmtDate(m.joinDate)}
+            </span>
+          </div>
+          {m.notes && <p className="text-xs text-muted italic mt-0.5 truncate">{m.notes}</p>}
+          {msg && <p className="text-xs text-[#22C55E] mt-1">{msg}</p>}
+        </div>
+
+        {/* Acciones */}
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <button onClick={() => { setPanel(p => p === 'edit' ? 'none' : 'edit'); setEditName(m.displayName); setEditEmail(m.email); setErr('') }}
+            title="Editar datos" className={`${iconBtn} hover:text-[#3B82F6] hover:bg-[#3B82F6]/10`}>
+            <Pencil size={14} />
+          </button>
+          <button onClick={() => { setPanel(p => p === 'password' ? 'none' : 'password'); setNewPass(''); setErr('') }}
+            title="Cambiar contraseña" className={`${iconBtn} hover:text-[#F59E0B] hover:bg-[#F59E0B]/10`}>
+            <KeyRound size={14} />
+          </button>
+          {m.status !== 'active' && (
+            <button onClick={() => updateMember(m.id, { status: 'active' })} title="Activar"
+              className={`${iconBtn} hover:text-[#22C55E] hover:bg-[#22C55E]/10`}>
+              <UserCheck size={14} />
+            </button>
+          )}
+          {m.status !== 'suspended' && (
+            <button onClick={() => updateMember(m.id, { status: 'suspended' })} title="Suspender"
+              className={`${iconBtn} hover:text-[#F59E0B] hover:bg-[#F59E0B]/10`}>
+              <UserX size={14} />
+            </button>
+          )}
+          {m.role !== 'admin' && (
+            <button onClick={() => updateMember(m.id, { role: 'admin' })} title="Hacer admin"
+              className={`${iconBtn} hover:text-[#7C3AED] hover:bg-[#7C3AED]/10`}>
+              <Shield size={14} />
+            </button>
+          )}
+          {confirmDel ? (
+            <div className="flex items-center gap-1">
+              <button onClick={onConfirmDel} className="text-xs px-2 py-0.5 bg-[#EF4444] text-white rounded-lg font-semibold">Sí</button>
+              <button onClick={onCancelDel} className="text-xs px-2 py-0.5 border border-border rounded-lg text-muted">No</button>
+            </div>
+          ) : (
+            <button onClick={onAskDel} className={`${iconBtn} hover:text-[#EF4444] hover:bg-[#EF4444]/10`}>
+              <Trash2 size={14} />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Panel de edición de datos */}
+      {panel === 'edit' && (
+        <div className="mt-3 pt-3 border-t border-border grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div>
+            <label className="block text-[11px] text-muted mb-1">Nombre público</label>
+            <input className="w-full bg-bg border border-border rounded-lg px-3 py-2 text-sm text-text focus:outline-none focus:border-[#7C3AED]"
+              value={editName} onChange={e => setEditName(e.target.value)} />
+          </div>
+          <div>
+            <label className="block text-[11px] text-muted mb-1">Email</label>
+            <input type="email" className="w-full bg-bg border border-border rounded-lg px-3 py-2 text-sm text-text focus:outline-none focus:border-[#7C3AED]"
+              value={editEmail} onChange={e => setEditEmail(e.target.value)} />
+          </div>
+          {err && <p className="text-xs text-[#EF4444] sm:col-span-2">{err}</p>}
+          <div className="flex gap-2 sm:col-span-2">
+            <button onClick={saveEdit} disabled={busy}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#7C3AED] text-white rounded-lg text-xs font-semibold hover:bg-[#6D28D9] disabled:opacity-50">
+              <Save size={13} /> Guardar
+            </button>
+            <button onClick={() => { setPanel('none'); setErr('') }}
+              className="flex items-center gap-1.5 px-3 py-1.5 border border-border rounded-lg text-xs text-muted">
+              <X size={13} /> Cancelar
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Panel de cambio de contraseña */}
+      {panel === 'password' && (
+        <div className="mt-3 pt-3 border-t border-border">
+          <label className="block text-[11px] text-muted mb-1">Nueva contraseña para @{m.username}</label>
+          <div className="flex gap-2 flex-wrap">
+            <input type="text" className="flex-1 min-w-[180px] bg-bg border border-border rounded-lg px-3 py-2 text-sm text-text focus:outline-none focus:border-[#F59E0B] font-mono"
+              value={newPass} onChange={e => setNewPass(e.target.value)} placeholder="mínimo 6 caracteres" />
+            <button onClick={savePass} disabled={busy}
+              className="flex items-center gap-1.5 px-3 py-2 bg-[#F59E0B] text-white rounded-lg text-xs font-semibold hover:bg-[#D97706] disabled:opacity-50">
+              <KeyRound size={13} /> Fijar contraseña
+            </button>
+            <button onClick={() => { setPanel('none'); setErr('') }}
+              className="flex items-center gap-1.5 px-3 py-2 border border-border rounded-lg text-xs text-muted">
+              Cancelar
+            </button>
+          </div>
+          <p className="text-[11px] text-muted mt-1.5">
+            Comunícasela al usuario. Podrá cambiarla luego desde su Configuración.
+          </p>
+          {err && <p className="text-xs text-[#EF4444] mt-1">{err}</p>}
         </div>
       )}
     </div>

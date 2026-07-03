@@ -4,6 +4,15 @@ const jwt     = require('jsonwebtoken')
 const { body, validationResult } = require('express-validator')
 const pool    = require('../config/database')
 const auth    = require('../middleware/auth')
+const { sendEmail, tempPasswordEmail, emailEnabled } = require('../config/email')
+
+/** Genera una contraseña temporal legible, ej: "PT-7K9M2X" */
+function genTempPassword() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789' // sin caracteres ambiguos
+  let out = ''
+  for (let i = 0; i < 6; i++) out += chars[Math.floor(Math.random() * chars.length)]
+  return `PT-${out}`
+}
 
 const signToken = (userId) =>
   jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: '7d' })
@@ -118,6 +127,48 @@ router.post('/login', [
   } catch (err) {
     console.error(err)
     res.status(500).json({ error: 'Error del servidor' })
+  }
+})
+
+/* ── Recuperar contraseña ──────────────────────────────
+   Genera una contraseña temporal, la envía por email y solo
+   entonces la guarda (si el email falla, no se cambia nada). */
+router.post('/forgot-password', [
+  body('email').trim().isEmail().withMessage('Email inválido'),
+], async (req, res) => {
+  const errors = validationResult(req)
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() })
+
+  if (!emailEnabled) {
+    return res.status(503).json({
+      error: 'El envío de emails aún no está configurado. Pide al administrador que recupere tu contraseña.',
+    })
+  }
+
+  const email = req.body.email.trim().toLowerCase()
+  const genericOk = { ok: true, message: 'Si el email existe, recibirás una contraseña temporal en unos minutos.' }
+
+  try {
+    const { rows } = await pool.query(
+      'SELECT id, display_name FROM users WHERE lower(email) = $1',
+      [email]
+    )
+    const user = rows[0]
+    // No revelamos si el email existe o no
+    if (!user) return res.json(genericOk)
+
+    const tempPassword = genTempPassword()
+    const { subject, html } = tempPasswordEmail(user.display_name, tempPassword)
+
+    // 1º enviar el email; solo si va bien cambiamos la contraseña
+    await sendEmail({ to: email, subject, html })
+    const hash = await bcrypt.hash(tempPassword, 12)
+    await pool.query('UPDATE users SET password_hash = $1 WHERE id = $2', [hash, user.id])
+
+    res.json(genericOk)
+  } catch (err) {
+    console.error('[forgot-password]', err.message)
+    res.status(500).json({ error: 'No se pudo enviar el email. Inténtalo más tarde o contacta con el administrador.' })
   }
 })
 

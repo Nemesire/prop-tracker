@@ -1,4 +1,5 @@
 const router = require('express').Router()
+const bcrypt = require('bcryptjs')
 const { body, validationResult } = require('express-validator')
 const pool         = require('../config/database')
 const auth         = require('../middleware/auth')
@@ -46,11 +47,14 @@ router.patch('/members/:id', [
   body('role').optional().isIn(['admin', 'member']),
   body('status').optional().isIn(['active', 'pending', 'suspended']),
   body('notes').optional({ nullable: true }).isString(),
+  body('displayName').optional().trim().isLength({ min: 2, max: 100 }),
+  body('email').optional().trim().isEmail().withMessage('Email inválido'),
 ], async (req, res) => {
   const errors = validationResult(req)
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() })
 
-  const { role, status, notes } = req.body
+  const { role, status, notes, displayName } = req.body
+  const email = req.body.email ? req.body.email.trim().toLowerCase() : undefined
 
   // El admin no puede quitarse el rol ni suspenderse a sí mismo
   if (String(req.params.id) === String(req.user.id) && (role === 'member' || status === 'suspended')) {
@@ -58,17 +62,49 @@ router.patch('/members/:id', [
   }
 
   try {
+    // Si cambia el email, verificar que no lo tenga otro usuario
+    if (email) {
+      const dup = await pool.query(
+        'SELECT id FROM users WHERE lower(email) = $1 AND id <> $2',
+        [email, req.params.id]
+      )
+      if (dup.rows[0]) return res.status(409).json({ error: 'Ese email ya está registrado por otro usuario' })
+    }
+
     const { rows } = await pool.query(`
       UPDATE users SET
-        role        = COALESCE($1, role),
-        status      = COALESCE($2, status),
-        admin_notes = COALESCE($3, admin_notes)
-      WHERE id = $4
+        role         = COALESCE($1, role),
+        status       = COALESCE($2, status),
+        admin_notes  = COALESCE($3, admin_notes),
+        display_name = COALESCE($4, display_name),
+        email        = COALESCE($5, email)
+      WHERE id = $6
       RETURNING id, username, display_name, email, role, status, join_date, admin_notes
-    `, [role ?? null, status ?? null, notes ?? null, req.params.id])
+    `, [role ?? null, status ?? null, notes ?? null, displayName ?? null, email ?? null, req.params.id])
 
     if (!rows[0]) return res.status(404).json({ error: 'Usuario no encontrado' })
     res.json({ member: mapMember(rows[0]) })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Error del servidor' })
+  }
+})
+
+// El admin fija una contraseña nueva para un usuario
+router.post('/members/:id/password', [
+  body('password').isLength({ min: 6 }).withMessage('Mínimo 6 caracteres'),
+], async (req, res) => {
+  const errors = validationResult(req)
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() })
+
+  try {
+    const hash = await bcrypt.hash(req.body.password, 12)
+    const { rowCount } = await pool.query(
+      'UPDATE users SET password_hash = $1 WHERE id = $2',
+      [hash, req.params.id]
+    )
+    if (!rowCount) return res.status(404).json({ error: 'Usuario no encontrado' })
+    res.json({ ok: true })
   } catch (err) {
     console.error(err)
     res.status(500).json({ error: 'Error del servidor' })

@@ -32,6 +32,11 @@ export const authService = {
     return user
   },
 
+  /** Solicita recuperar contraseña — envía una temporal al email */
+  async forgotPassword(email: string): Promise<{ message: string }> {
+    return api.post<{ message: string }>('/auth/forgot-password', { email })
+  },
+
   /** Cierra sesión */
   logout(): void {
     localStorage.removeItem('pt_token')

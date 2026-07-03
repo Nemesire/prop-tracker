@@ -8,13 +8,18 @@ export const adminService = {
     return members
   },
 
-  async updateMember(id: string, updates: Partial<Pick<CommunityMember, 'role' | 'status' | 'notes'>>): Promise<CommunityMember> {
+  async updateMember(id: string, updates: Partial<Pick<CommunityMember, 'role' | 'status' | 'notes' | 'displayName' | 'email'>>): Promise<CommunityMember> {
     const { member } = await api.patch<{ member: CommunityMember }>(`/admin/members/${id}`, updates)
     return member
   },
 
   async deleteMember(id: string): Promise<void> {
     await api.delete(`/admin/members/${id}`)
+  },
+
+  /** El admin fija una contraseña nueva para un usuario */
+  async setMemberPassword(id: string, password: string): Promise<void> {
+    await api.post(`/admin/members/${id}/password`, { password })
   },
 
   /* ── Invitaciones ── */

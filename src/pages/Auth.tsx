@@ -2,15 +2,31 @@
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAppStore } from '../store/useAppStore'
 import { useAdminStore } from '../store/useAdminStore'
+import { authService } from '../services/auth.service'
 import Button from '../components/ui/Button'
 
+const REMEMBER_KEY = 'pt_remember'
+
+/** Lee las credenciales recordadas (usuario + contraseña ofuscada en base64) */
+function loadRemembered(): { username: string; password: string } | null {
+  try {
+    const raw = localStorage.getItem(REMEMBER_KEY)
+    if (!raw) return null
+    const obj = JSON.parse(raw)
+    return { username: obj.u ?? '', password: obj.p ? atob(obj.p) : '' }
+  } catch { return null }
+}
+
 export default function Auth() {
-  const [mode, setMode]           = useState<'login' | 'register'>('login')
+  const [mode, setMode]           = useState<'login' | 'register' | 'forgot'>('login')
   const [username, setUsername]   = useState('')
   const [displayName, setDisplayName] = useState('')
   const [email, setEmail]         = useState('')
   const [password, setPassword]   = useState('')
   const [inviteCode, setInviteCode] = useState('')
+  const [remember, setRemember]   = useState(false)
+  const [forgotEmail, setForgotEmail] = useState('')
+  const [info, setInfo]           = useState('')
   const [error, setError]         = useState('')
   const [loading, setLoading]     = useState(false)
 
@@ -22,11 +38,44 @@ export default function Auth() {
   useEffect(() => {
     const code = params.get('invite')
     if (code) { setInviteCode(code.toUpperCase()); setMode('register') }
+    // Prellenar credenciales recordadas
+    const saved = loadRemembered()
+    if (saved && saved.username) {
+      setUsername(saved.username)
+      setPassword(saved.password)
+      setRemember(true)
+    }
   }, [params])
 
   // En desarrollo siempre modo local (no hay DB local).
   // En producción (Vercel) siempre API real.
   const useLocalMode = import.meta.env.DEV
+
+  /** Guarda o borra las credenciales recordadas según el checkbox */
+  function persistRemember() {
+    if (remember) {
+      localStorage.setItem(REMEMBER_KEY, JSON.stringify({ u: username.toLowerCase().trim(), p: btoa(password) }))
+    } else {
+      localStorage.removeItem(REMEMBER_KEY)
+    }
+  }
+
+  async function handleForgot(e: React.FormEvent) {
+    e.preventDefault()
+    setError(''); setInfo(''); setLoading(true)
+    try {
+      if (useLocalMode) {
+        setInfo('La recuperación por email solo funciona en la app publicada (producción).')
+        return
+      }
+      const res = await authService.forgotPassword(forgotEmail.trim().toLowerCase())
+      setInfo(res.message || 'Si el email existe, recibirás una contraseña temporal en unos minutos.')
+    } catch (err: unknown) {
+      setError((err as Error).message || 'No se pudo procesar la solicitud')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -84,6 +133,7 @@ export default function Auth() {
         } else {
           await loginWithApi(username.toLowerCase().trim(), password)
         }
+        persistRemember()
         navigate('/dashboard')
       }
     } catch (err: unknown) {
@@ -112,21 +162,68 @@ export default function Auth() {
         {/* Card */}
         <div className="bg-surface border border-border rounded-2xl p-6">
 
-          {/* Tabs */}
-          <div className="flex gap-1 mb-6 bg-bg rounded-xl p-1">
-            {(['login', 'register'] as const).map(m => (
-              <button
-                key={m}
-                onClick={() => { setMode(m); setError('') }}
-                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
-                  mode === m ? 'bg-[#7C3AED] text-white' : 'text-muted hover:text-text'
-                }`}
-              >
-                {m === 'login' ? 'Iniciar sesión' : 'Registrarse'}
-              </button>
-            ))}
-          </div>
+          {/* Tabs (ocultas en modo recuperar) */}
+          {mode !== 'forgot' && (
+            <div className="flex gap-1 mb-6 bg-bg rounded-xl p-1">
+              {(['login', 'register'] as const).map(m => (
+                <button
+                  key={m}
+                  onClick={() => { setMode(m); setError(''); setInfo('') }}
+                  className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
+                    mode === m ? 'bg-[#7C3AED] text-white' : 'text-muted hover:text-text'
+                  }`}
+                >
+                  {m === 'login' ? 'Iniciar sesión' : 'Registrarse'}
+                </button>
+              ))}
+            </div>
+          )}
 
+          {/* ── RECUPERAR CONTRASEÑA ── */}
+          {mode === 'forgot' ? (
+            <form onSubmit={handleForgot} className="space-y-4">
+              <div>
+                <h2 className="text-base font-semibold text-text mb-1">Recuperar contraseña</h2>
+                <p className="text-xs text-muted">
+                  Escribe el email con el que te registraste. Te enviaremos una <strong>contraseña temporal</strong> para entrar y luego cambiarla.
+                </p>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-muted mb-1.5">Email registrado</label>
+                <input
+                  type="email"
+                  className={inputCls}
+                  value={forgotEmail}
+                  onChange={e => setForgotEmail(e.target.value)}
+                  placeholder="tu@email.com"
+                  autoFocus
+                  required
+                />
+              </div>
+
+              {info && (
+                <p className="text-xs text-[#22C55E] bg-[#22C55E]/10 border border-[#22C55E]/20 rounded-lg px-3 py-2">
+                  {info}
+                </p>
+              )}
+              {error && (
+                <p className="text-xs text-[#EF4444] bg-[#EF4444]/10 border border-[#EF4444]/20 rounded-lg px-3 py-2">
+                  {error}
+                </p>
+              )}
+
+              <Button type="submit" className="w-full justify-center" size="lg" loading={loading}>
+                Enviar contraseña temporal
+              </Button>
+              <button
+                type="button"
+                onClick={() => { setMode('login'); setError(''); setInfo('') }}
+                className="w-full text-center text-xs text-[#7C3AED] hover:underline"
+              >
+                ← Volver a iniciar sesión
+              </button>
+            </form>
+          ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-xs font-medium text-muted mb-1.5">
@@ -193,6 +290,29 @@ export default function Auth() {
               />
             </div>
 
+            {/* Recordar + recuperar (solo login) */}
+            {mode === 'login' && (
+              <div className="flex items-center justify-between">
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <button
+                    type="button"
+                    onClick={() => setRemember(r => { const next = !r; if (!next) localStorage.removeItem(REMEMBER_KEY); return next })}
+                    className={`relative w-9 h-5 rounded-full transition-colors flex-shrink-0 ${remember ? 'bg-[#7C3AED]' : 'bg-border'}`}
+                  >
+                    <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${remember ? 'translate-x-4' : ''}`} />
+                  </button>
+                  <span className="text-xs text-muted">Recordar mis datos</span>
+                </label>
+                <button
+                  type="button"
+                  onClick={() => { setMode('forgot'); setError(''); setInfo(''); setForgotEmail(username.includes('@') ? username : '') }}
+                  className="text-xs text-[#7C3AED] hover:underline"
+                >
+                  ¿Olvidaste tu contraseña?
+                </button>
+              </div>
+            )}
+
             {error && (
               <p className="text-xs text-[#EF4444] bg-[#EF4444]/10 border border-[#EF4444]/20 rounded-lg px-3 py-2">
                 {error}
@@ -203,23 +323,20 @@ export default function Auth() {
               {mode === 'login' ? 'Entrar' : 'Crear cuenta'}
             </Button>
           </form>
-
-          {mode === 'login' && (
-            <p className="text-center text-xs text-muted mt-4">
-              ¿No tienes cuenta? <button onClick={() => { setMode('register'); setError('') }} className="text-[#7C3AED] hover:underline">Regístrate gratis</button>
-            </p>
           )}
         </div>
 
-        <p className="text-center text-xs text-muted mt-6">
-          {mode === 'login' ? '¿No tienes cuenta? ' : '¿Ya tienes cuenta? '}
-          <button
-            onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError('') }}
-            className="text-[#7C3AED] hover:underline"
-          >
-            {mode === 'login' ? 'Regístrate gratis' : 'Inicia sesión'}
-          </button>
-        </p>
+        {mode !== 'forgot' && (
+          <p className="text-center text-xs text-muted mt-6">
+            {mode === 'login' ? '¿No tienes cuenta? ' : '¿Ya tienes cuenta? '}
+            <button
+              onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError(''); setInfo('') }}
+              className="text-[#7C3AED] hover:underline"
+            >
+              {mode === 'login' ? 'Regístrate gratis' : 'Inicia sesión'}
+            </button>
+          </p>
+        )}
       </div>
     </div>
   )

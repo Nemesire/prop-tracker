@@ -22,6 +22,7 @@ interface AdminState {
   addMember:    (m: Omit<CommunityMember, 'id' | 'joinDate'>) => void
   updateMember: (id: string, updates: Partial<CommunityMember>) => Promise<void>
   deleteMember: (id: string) => Promise<void>
+  setMemberPassword: (id: string, password: string) => Promise<void>
 
   createInvite: (note?: string) => Promise<void>
   deleteInvite: (id: string) => Promise<void>
@@ -74,6 +75,11 @@ export const useAdminStore = create<AdminState>()(
       deleteMember: async (id) => {
         if (REMOTE) await adminService.deleteMember(id)
         set(s => ({ members: s.members.filter(m => m.id !== id) }))
+      },
+
+      setMemberPassword: async (id, password) => {
+        // Solo tiene efecto en producción (la BD guarda el hash).
+        if (REMOTE) await adminService.setMemberPassword(id, password)
       },
 
       createInvite: async (note) => {
