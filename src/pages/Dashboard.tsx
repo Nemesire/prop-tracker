@@ -141,7 +141,7 @@ export default function Dashboard() {
           icon={<Percent size={20} />}
           color="#3B82F6"
           trend={{ label: `Retiros: ${withdrawalCount * 20}%` }}
-          tooltip="Es la cantidad de veces que te fondeas de los exámenes que haces."
+          tooltip="Es la cantidad de veces que te fondeas de los exámenes que haces. Recomendable cerca del 30%."
         />
         <StatsCard
           title="Gastos Totales"
