@@ -291,8 +291,8 @@ function InvitesTab() {
         <AlertTriangle size={14} className="text-[#3B82F6] flex-shrink-0 mt-0.5" />
         <p className="text-xs text-muted leading-relaxed">
           Genera un código, cópialo y comparte el enlace con la persona que quieras invitar.
-          Cuando se registre con ese código, aparecerá aquí como usado.
-          Con Supabase conectada, la validación es automática y en tiempo real.
+          Cuando se registre con ese código, aparecerá aquí como usado y la persona
+          saldrá en la pestaña Miembros, donde podrás gestionar sus permisos.
         </p>
       </div>
 
