@@ -1,4 +1,4 @@
-﻿import { useState, type ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 
 interface Props {
   title: string
@@ -8,11 +8,30 @@ interface Props {
   color?: string
   trend?: { label: string; positive?: boolean }
   tooltip?: string
+  secondaryStat?: { label: string; value: string; tooltip?: string }
 }
 
-export default function StatsCard({ title, value, subtitle, icon, color = '#7C3AED', trend, tooltip }: Props) {
-  const [tipVisible, setTipVisible] = useState(false)
+function TooltipBadge({ text }: { text: string }) {
+  const [visible, setVisible] = useState(false)
+  return (
+    <span className="relative">
+      <span
+        onMouseEnter={() => setVisible(true)}
+        onMouseLeave={() => setVisible(false)}
+        onClick={() => setVisible(v => !v)}
+        className="w-4 h-4 rounded-full bg-surface2 border border-border text-muted text-[10px] font-bold flex items-center justify-center cursor-help select-none hover:border-[#7C3AED]/60 hover:text-[#7C3AED] transition-colors"
+      >?</span>
+      {visible && (
+        <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-52 bg-surface border border-border rounded-xl px-3 py-2 text-xs text-text shadow-lg z-50 leading-relaxed pointer-events-none">
+          {text}
+          <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-border" />
+        </span>
+      )}
+    </span>
+  )
+}
 
+export default function StatsCard({ title, value, subtitle, icon, color = '#7C3AED', trend, tooltip, secondaryStat }: Props) {
   return (
     <div className="bg-surface border border-border rounded-2xl p-5 hover:border-[#7C3AED]/30 transition-all group">
       <div className="flex items-start justify-between mb-4">
@@ -29,25 +48,20 @@ export default function StatsCard({ title, value, subtitle, icon, color = '#7C3A
         <div className="text-2xl font-bold text-text mb-1">{value}</div>
         <div className="flex items-center gap-1.5">
           <span className="text-sm text-muted">{title}</span>
-          {tooltip && (
-            <span className="relative">
-              <span
-                onMouseEnter={() => setTipVisible(true)}
-                onMouseLeave={() => setTipVisible(false)}
-                onClick={() => setTipVisible(v => !v)}
-                className="w-4 h-4 rounded-full bg-surface2 border border-border text-muted text-[10px] font-bold flex items-center justify-center cursor-help select-none hover:border-[#7C3AED]/60 hover:text-[#7C3AED] transition-colors"
-              >?</span>
-              {tipVisible && (
-                <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-52 bg-surface border border-border rounded-xl px-3 py-2 text-xs text-text shadow-lg z-50 leading-relaxed pointer-events-none">
-                  {tooltip}
-                  <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-border" />
-                </span>
-              )}
-            </span>
-          )}
+          {tooltip && <TooltipBadge text={tooltip} />}
         </div>
         {subtitle && <div className="text-xs text-muted mt-0.5 opacity-70">{subtitle}</div>}
       </div>
+
+      {secondaryStat && (
+        <div className="mt-3 pt-3 border-t border-border flex items-center justify-between">
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs text-muted">{secondaryStat.label}</span>
+            {secondaryStat.tooltip && <TooltipBadge text={secondaryStat.tooltip} />}
+          </div>
+          <span className="text-sm font-bold" style={{ color }}>{secondaryStat.value}</span>
+        </div>
+      )}
     </div>
   )
 }

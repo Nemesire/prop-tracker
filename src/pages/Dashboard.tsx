@@ -63,6 +63,9 @@ export default function Dashboard() {
   const fundingRatio = calcFundingRatio(allAccounts)
   const companyStats = calcCompanyStats(accounts)
 
+  // Withdraw Ratio = veces que retiras / total de cuentas compradas
+  const withdrawRatio = accounts.length > 0 ? (withdrawalCount / accounts.length) * 100 : 0
+
   // Cuentas con entradas diarias y costes filtrados por rango → para el gráfico
   const accountsForChart = allAccounts.map(a => ({
     ...a,
@@ -157,6 +160,11 @@ export default function Dashboard() {
           color="#22C55E"
           trend={{ label: `↑ ${fmt(totalEarnings / Math.max(accounts.length, 1))}`, positive: true }}
           tooltip="Total retirado de todas las empresas."
+          secondaryStat={{
+            label: 'Withdraw Ratio',
+            value: hideValues ? '**%' : `${withdrawRatio.toFixed(1)}%`,
+            tooltip: 'Es el ratio de las veces que retiras de un total de cuentas.',
+          }}
         />
         <StatsCard
           title="Beneficio Neto"
