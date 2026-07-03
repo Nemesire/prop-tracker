@@ -1,5 +1,5 @@
 ﻿import { useState, useRef } from 'react'
-import { Sun, Moon, User, Globe, Shield, Download, Camera, Check, ShieldAlert } from 'lucide-react'
+import { Sun, Moon, User, Globe, Shield, Download, Camera, Check, ShieldAlert, Trash2, AlertTriangle } from 'lucide-react'
 import { useAppStore } from '../store/useAppStore'
 import type { Theme } from '../store/useAppStore'
 import Avatar from '../components/ui/Avatar'
@@ -26,6 +26,12 @@ export default function Configuracion() {
   const SECTIONS = isAdmin
     ? [...BASE_SECTIONS, { id: 'admin' as Section, label: 'Admin', icon: ShieldAlert }]
     : BASE_SECTIONS
+
+  /* estado del borrado total de datos */
+  const [wipeOpen, setWipeOpen] = useState(false)
+  const [wipeText, setWipeText] = useState('')
+  const [wiping, setWiping]     = useState(false)
+  const [wiped, setWiped]       = useState(false)
   const [saved, setSaved] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
@@ -55,6 +61,19 @@ export default function Configuracion() {
     updateProfile({ displayName, bio, country, isPublic, avatar: avatarPreview || undefined })
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
+  }
+
+  async function handleWipe() {
+    setWiping(true)
+    try {
+      await useAppStore.getState().wipeAllData()
+      setWiped(true)
+      setWipeOpen(false)
+      setWipeText('')
+      setTimeout(() => setWiped(false), 4000)
+    } finally {
+      setWiping(false)
+    }
   }
 
   function handleExportCSV() {
@@ -273,6 +292,69 @@ export default function Configuracion() {
                   <Download size={16} /> Exportar CSV
                 </Button>
               </div>
+
+              {/* EMPEZAR DE CERO */}
+              <div className={cardCls} style={{ borderColor: '#EF444440' }}>
+                <h2 className="text-base font-semibold text-text mb-2 flex items-center gap-2">
+                  <Trash2 size={16} className="text-[#EF4444]" /> Empezar de cero
+                </h2>
+                <p className="text-sm text-muted mb-1">
+                  ¿Estabas probando la app con datos de demo? Borra todo y empieza a registrar tus datos reales.
+                </p>
+                <p className="text-xs text-muted mb-4">
+                  Se eliminan: <strong>cuentas, retiros, entradas diarias, XP, badges, challenges, simulaciones de la
+                  calculadora y favoritos de Conceptos</strong>. Se conservan: tu perfil, tu sesión, el tema y las empresas.
+                </p>
+
+                {wiped ? (
+                  <div className="flex items-center gap-2 text-sm text-[#22C55E] bg-[#22C55E]/10 border border-[#22C55E]/20 rounded-xl px-4 py-3">
+                    <Check size={16} /> Datos borrados. Ya puedes empezar a registrar tus datos reales.
+                  </div>
+                ) : !wipeOpen ? (
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <Button variant="danger" onClick={() => setWipeOpen(true)}>
+                      <Trash2 size={15} /> Borrar todos los datos
+                    </Button>
+                    <button
+                      onClick={handleExportCSV}
+                      className="text-xs text-muted hover:text-text underline transition-colors"
+                    >
+                      Exportar CSV antes, por si acaso
+                    </button>
+                  </div>
+                ) : (
+                  <div className="bg-[#EF4444]/5 border border-[#EF4444]/30 rounded-xl p-4 space-y-3">
+                    <div className="flex items-start gap-2">
+                      <AlertTriangle size={16} className="text-[#EF4444] flex-shrink-0 mt-0.5" />
+                      <p className="text-sm text-text">
+                        Esta acción <strong>no se puede deshacer</strong>. Para confirmar, escribe{' '}
+                        <span className="font-mono font-bold text-[#EF4444]">BORRAR</span> y pulsa el botón.
+                      </p>
+                    </div>
+                    <input
+                      className="w-full bg-bg border border-border rounded-xl px-4 py-2.5 text-sm text-text placeholder:text-muted focus:outline-none focus:border-[#EF4444] transition-colors font-mono tracking-widest"
+                      placeholder="BORRAR"
+                      value={wipeText}
+                      onChange={e => setWipeText(e.target.value.toUpperCase())}
+                      autoFocus
+                    />
+                    <div className="flex gap-2">
+                      <Button
+                        variant="danger"
+                        disabled={wipeText !== 'BORRAR' || wiping}
+                        loading={wiping}
+                        onClick={handleWipe}
+                      >
+                        <Trash2 size={15} /> {wiping ? 'Borrando…' : 'Borrar definitivamente'}
+                      </Button>
+                      <Button variant="secondary" onClick={() => { setWipeOpen(false); setWipeText('') }}>
+                        Cancelar
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <div className={cardCls}>
                 <h2 className="text-base font-semibold text-[#EF4444] mb-2">Zona de peligro</h2>
                 <p className="text-sm text-muted mb-4">

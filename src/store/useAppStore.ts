@@ -86,6 +86,9 @@ interface AppState {
   addCompany:    (company: Omit<Company, 'id'>) => void
   updateCompany: (id: string, updates: Partial<Omit<Company, 'id'>>) => void
   deleteCompany: (id: string) => void
+
+  /* Borrado total de datos (demo → real) */
+  wipeAllData: () => Promise<void>
 }
 
 function applyTheme(theme: Theme) {
@@ -407,6 +410,36 @@ export const useAppStore = create<AppState>()(
       deleteCompany: (id) => set(s => ({
         companies: s.companies.filter(c => c.id !== id)
       })),
+
+      /* ── Borrado total de datos (demo → real) ─────────── */
+      wipeAllData: async () => {
+        const s = get()
+        if (!s.currentUser) return
+
+        // En producción borra también las cuentas del servidor
+        if (!import.meta.env.DEV && authService.isLoggedIn()) {
+          for (const acc of s.currentUser.accounts) {
+            try { await accountsService.delete(acc.id) }
+            catch (err) { console.error('Error borrando cuenta en servidor:', err) }
+          }
+        }
+
+        // Datos auxiliares en localStorage
+        localStorage.removeItem('prop-calc-sims')          // simulaciones de la calculadora
+        localStorage.removeItem('pt-conceptos-favoritos')  // favoritos de Conceptos
+
+        set({
+          currentUser: {
+            ...s.currentUser,
+            accounts: [],
+            xp:       0,
+            level:    1,
+            badges:   [],
+          },
+          userChallenges: [],
+          dateRange:      getDefaultRange(),
+        })
+      },
     }),
     {
       name: 'prop-tracker-app',
