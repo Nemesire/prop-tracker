@@ -1,7 +1,7 @@
-import { Dices, TrendingUp, Wallet, Target } from 'lucide-react'
+import { Dices, TrendingUp, Wallet, Target, Rocket, Percent } from 'lucide-react'
 
 /* ─────────────────────────────────────────────────────────────
-   Ventaja — los 3 pilares de la ventaja estadística en fondeadas
+   Ventaja — los 5 pilares de la ventaja estadística en fondeadas
    ───────────────────────────────────────────────────────────── */
 
 interface Pilar {
@@ -31,6 +31,7 @@ const PILARES: Pilar[] = [
     color: '#7C3AED',
     icon: TrendingUp,
     bullets: [
+      { text: <>Para lograr un winrate tan alto (90%) tienes que usar un <strong>ratio negativo</strong>: arriesgar más de lo que ganas (ej. <strong>arriesgar 1 para ganar 0.5</strong>), así el profit que buscas se da rápido y con más probabilidad.</> },
       { text: <>Necesitas <strong>rallys positivos prolongados</strong> (15-20 trades).</> },
       { text: <>Si no, por varianza <strong>perderás antes de cobrar</strong> y no tendrás un buen ratio de payout.</> },
       { text: <>Piensa que por muchas evaluaciones que pases y mucho capital que gestiones, aquí lo que importa es <strong>cuánto retiras antes de quebrar la cuenta</strong>.</> },
@@ -50,6 +51,29 @@ const PILARES: Pilar[] = [
       { text: <>A un coste medio de <strong>50-80$ por prueba</strong> (cuentas de 50k), podrás hacer unos <strong>40 challenges de margen</strong> para que la varianza te favorezca.</> },
     ],
   },
+  {
+    num: 4,
+    title: 'Sobre-apaláncate en fondeo',
+    color: '#F59E0B',
+    icon: Rocket,
+    bullets: [
+      { text: <>Esto <strong>no es trading real</strong>, por lo que la gestión del riesgo se debe <strong>adaptar a las condiciones de las empresas</strong>.</> },
+      { text: <>La ventaja de las empresas de fondeo es el <strong>apalancamiento absurdo</strong> que te dejan. Lo hacen porque así, aunque tengas una estrategia ganadora, <strong>perderás con alta probabilidad más veces de las que ganarás</strong>.</> },
+      { text: <>Actúa de forma <strong>contraintuitiva</strong> y usa <strong>todo el apalancamiento que puedas</strong> para pasar los challenges.</> },
+      { text: <>Si haces trading con buena gestión del riesgo, <strong>el tiempo que le dedicarás no compensará</strong> (además de la alta probabilidad de perder la cuenta).</> },
+    ],
+  },
+  {
+    num: 5,
+    title: 'Busca descuentos que reduzcan tu coste total anual',
+    color: '#EF4444',
+    icon: Percent,
+    bullets: [
+      { text: <>Las empresas <strong>no paran de sacar descuentos</strong>: úsalos para reducir costes y <strong>aumentar tu ROI anual</strong>.</> },
+      { text: <>Tienes que ser <strong>más buscador de ofertas que trader</strong> en muchas ocasiones.</> },
+      { text: <>Si consigues reducir tu coste anual con descuentos un <strong>20%</strong>, es <strong>beneficio que te llevas</strong>.</> },
+    ],
+  },
 ]
 
 export default function Ventaja() {
@@ -61,7 +85,7 @@ export default function Ventaja() {
           <Target size={24} className="text-[#7C3AED]" /> Ventaja
         </h1>
         <p className="text-sm text-muted mt-0.5">
-          Los 3 pilares de la ventaja estadística en cuentas de fondeo
+          Los 5 pilares de la ventaja estadística en cuentas de fondeo
         </p>
       </div>
 
