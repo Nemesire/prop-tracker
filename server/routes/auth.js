@@ -32,15 +32,20 @@ router.post('/register', [
   body('username').trim().isLength({ min: 3, max: 30 }).matches(/^[a-zA-Z0-9_]+$/),
   body('displayName').trim().isLength({ min: 2, max: 100 }),
   body('password').isLength({ min: 6 }),
+  body('email').trim().isEmail().withMessage('Email inválido'),
 ], async (req, res) => {
   const errors = validationResult(req)
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() })
 
-  const { username, displayName, password, email, inviteCode } = req.body
+  const { username, displayName, password, inviteCode } = req.body
+  const email = req.body.email.trim().toLowerCase()
 
   try {
     const exists = await pool.query('SELECT id FROM users WHERE username = $1', [username.toLowerCase()])
-    if (exists.rows[0]) return res.status(409).json({ error: 'El nombre de usuario ya existe' })
+    if (exists.rows[0]) return res.status(409).json({ error: 'El alias de usuario ya existe' })
+
+    const emailExists = await pool.query('SELECT id FROM users WHERE lower(email) = $1', [email])
+    if (emailExists.rows[0]) return res.status(409).json({ error: 'Ese email ya está registrado' })
 
     // Registro solo con invitación (salvo bootstrap: primera cuenta de la BD)
     const { rows: countRows } = await pool.query('SELECT COUNT(*)::int AS n FROM users')
@@ -66,7 +71,7 @@ router.post('/register', [
       INSERT INTO users (username, display_name, email, password_hash)
       VALUES ($1, $2, $3, $4)
       RETURNING id, username, display_name, email, role, status, avatar, bio, country, is_public, xp, level, badges, join_date
-    `, [username.toLowerCase(), displayName, email || null, passwordHash])
+    `, [username.toLowerCase(), displayName, email, passwordHash])
 
     if (inviteId) {
       await pool.query(
@@ -93,11 +98,16 @@ router.post('/login', [
   const { username, password } = req.body
 
   try {
-    const { rows } = await pool.query('SELECT * FROM users WHERE username = $1', [username.toLowerCase()])
+    // Permite iniciar sesión con el alias de usuario O con el email
+    const identifier = username.toLowerCase().trim()
+    const { rows } = await pool.query(
+      'SELECT * FROM users WHERE username = $1 OR lower(email) = $1',
+      [identifier]
+    )
     const user = rows[0]
 
     if (!user || !(await bcrypt.compare(password, user.password_hash))) {
-      return res.status(401).json({ error: 'Usuario o contraseña incorrectos' })
+      return res.status(401).json({ error: 'Usuario/email o contraseña incorrectos' })
     }
     if (user.status === 'suspended') {
       return res.status(403).json({ error: 'Tu cuenta está suspendida. Contacta con el administrador.' })

@@ -35,6 +35,17 @@ async function migrate() {
      WHERE (lower(email) = $1 OR username = ANY($2)) AND role <> 'admin'`,
     [ADMIN_EMAIL, ADMIN_USERNAMES]
   )
+
+  // Email único (necesario para login por email). Tolerante: si existieran
+  // emails duplicados antiguos no rompe la API, solo lo deja en el log.
+  try {
+    await pool.query(
+      `CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email_unique
+       ON users (lower(email)) WHERE email IS NOT NULL`
+    )
+  } catch (err) {
+    console.error('[ensureSchema] índice único de email no creado:', err.message)
+  }
 }
 
 let migrationPromise = null

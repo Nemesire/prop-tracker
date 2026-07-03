@@ -39,6 +39,10 @@ export default function Auth() {
           setError('Completa todos los campos')
           return
         }
+        if (!useLocalMode && !email.trim()) {
+          setError('Introduce tu email — lo necesitas para iniciar sesión')
+          return
+        }
         if (password.length < 6) {
           setError('La contraseña debe tener al menos 6 caracteres')
           return
@@ -64,7 +68,7 @@ export default function Auth() {
             username.toLowerCase().trim(),
             displayName.trim(),
             password,
-            email.trim() || undefined,
+            email.trim().toLowerCase(),
             inviteCode.trim() || undefined
           )
         }
@@ -72,7 +76,7 @@ export default function Auth() {
 
       } else {
         if (!username.trim() || !password.trim()) {
-          setError('Introduce tu usuario y contraseña')
+          setError('Introduce tu usuario o email y la contraseña')
           return
         }
         if (useLocalMode) {
@@ -125,15 +129,20 @@ export default function Auth() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-medium text-muted mb-1.5">Usuario</label>
+              <label className="block text-xs font-medium text-muted mb-1.5">
+                {mode === 'login' ? 'Usuario o email' : 'Alias de usuario'}
+              </label>
               <input
                 className={inputCls}
                 value={username}
                 onChange={e => setUsername(e.target.value)}
-                placeholder="tu_usuario"
+                placeholder={mode === 'login' ? 'tu_alias o tu@email.com' : 'tu_alias'}
                 autoFocus
                 autoComplete="username"
               />
+              {mode === 'register' && (
+                <p className="text-[11px] text-muted mt-1">Con este alias (o tu email) iniciarás sesión.</p>
+              )}
             </div>
 
             {mode === 'register' && (
@@ -148,7 +157,7 @@ export default function Auth() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-muted mb-1.5">Email <span className="text-muted opacity-60">(opcional)</span></label>
+                  <label className="block text-xs font-medium text-muted mb-1.5">Email</label>
                   <input
                     type="email"
                     className={inputCls}
@@ -156,6 +165,7 @@ export default function Auth() {
                     onChange={e => setEmail(e.target.value)}
                     placeholder="tu@email.com"
                     autoComplete="email"
+                    required
                   />
                 </div>
                 <div>
