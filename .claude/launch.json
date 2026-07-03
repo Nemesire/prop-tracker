@@ -10,7 +10,7 @@
     {
       "name": "prop-tracker-api",
       "runtimeExecutable": "node",
-      "runtimeArgs": ["api/server.js"],
+      "runtimeArgs": ["server/local.js"],
       "port": 3001
     }
   ]

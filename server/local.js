@@ -5,7 +5,7 @@ try {
   require(path.join(__dirname, '../node_modules/dotenv')).config({ path: path.join(__dirname, '../.env') })
 } catch (e) { /* dotenv opcional */ }
 
-const app = require('./index')
+const app = require('./app')
 const PORT = process.env.PORT || 3001
 
 app.listen(PORT, () => {
