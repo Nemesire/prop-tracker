@@ -1,6 +1,6 @@
 ﻿import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, CreditCard, Trophy, Zap, Activity, FileBarChart, LogOut, ChevronLeft, ChevronRight, User, Settings, Calculator, Sun, Moon, Building2, Banknote, BookOpen } from 'lucide-react'
+import { LayoutDashboard, CreditCard, Trophy, Zap, Activity, FileBarChart, LogOut, ChevronLeft, ChevronRight, User, Settings, Calculator, Sun, Moon, Building2, Banknote, BookOpen, Target } from 'lucide-react'
 import { useAppStore } from '../../store/useAppStore'
 import { getLevelFromXp, getLevelProgress } from '../../utils/gamification'
 import Avatar from '../ui/Avatar'
@@ -16,7 +16,8 @@ const NAV_ITEMS = [
   { to: '/empresas',       icon: Building2,       label: 'Empresas' },
   { to: '/perfil',         icon: User,            label: 'Mi Perfil' },
   { to: '/calculadora',    icon: Calculator,      label: 'Calculadora' },
-  { to: '/conceptos',     icon: BookOpen,        label: 'Conceptos' },
+  { to: '/ventaja',        icon: Target,          label: 'Ventaja' },
+  { to: '/conceptos',      icon: BookOpen,        label: 'Conceptos' },
 ]
 
 export default function Sidebar() {

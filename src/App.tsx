@@ -15,6 +15,7 @@ import Configuracion from './pages/Configuracion'
 import Calculadora from './pages/Calculadora'
 import Empresas from './pages/Empresas'
 import Retiros from './pages/Retiros'
+import Ventaja from './pages/Ventaja'
 import Conceptos from './pages/Conceptos'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -63,6 +64,7 @@ export default function App() {
         <Route path="/calculadora"   element={<ProtectedRoute><Layout><Calculadora   /></Layout></ProtectedRoute>} />
         <Route path="/empresas"      element={<ProtectedRoute><Layout><Empresas      /></Layout></ProtectedRoute>} />
         <Route path="/retiros"       element={<ProtectedRoute><Layout><Retiros       /></Layout></ProtectedRoute>} />
+        <Route path="/ventaja"       element={<ProtectedRoute><Layout><Ventaja       /></Layout></ProtectedRoute>} />
         <Route path="/conceptos"     element={<ProtectedRoute><Layout><Conceptos     /></Layout></ProtectedRoute>} />
 
         {/* Fallback */}
