@@ -5,6 +5,7 @@ import { formatCurrency } from '../../utils/calculations'
 import { useAppStore } from '../../store/useAppStore'
 import CuentaModal from './CuentaModal'
 import WithdrawalModal from './WithdrawalModal'
+import ResetearModal from './ResetearModal'
 
 interface Props { account: Account }
 
@@ -26,6 +27,7 @@ export default function CuentaRow({ account: acc }: Props) {
   const { approveEvaluation, updateAccount } = useAppStore()
   const [editOpen, setEditOpen] = useState(false)
   const [withdrawOpen, setWithdrawOpen] = useState(false)
+  const [resetOpen, setResetOpen] = useState(false)
 
   const benefit = acc.withdrawals - acc.cost
 
@@ -54,7 +56,7 @@ export default function CuentaRow({ account: acc }: Props) {
         <td className="px-5 py-4">
           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
             {acc.type === 'evaluacion' && acc.status === 'activa' && (
-              <button title="Renovar" onClick={() => updateAccount(acc.id, { cost: acc.cost })} className="p-1.5 rounded-lg hover:bg-surface2 text-muted hover:text-text transition-colors">
+              <button title="Resetear" onClick={() => setResetOpen(true)} className="p-1.5 rounded-lg hover:bg-surface2 text-muted hover:text-[#F97316] transition-colors">
                 <RefreshCw size={14} />
               </button>
             )}
@@ -79,6 +81,7 @@ export default function CuentaRow({ account: acc }: Props) {
       </tr>
       <CuentaModal open={editOpen} onClose={() => setEditOpen(false)} account={acc} />
       {withdrawOpen && <WithdrawalModal open={withdrawOpen} onClose={() => setWithdrawOpen(false)} account={acc} />}
+      {resetOpen && <ResetearModal open={resetOpen} onClose={() => setResetOpen(false)} account={acc} />}
     </>
   )
 }

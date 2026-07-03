@@ -1,7 +1,6 @@
 ﻿import { useState } from 'react'
 import Modal from '../ui/Modal'
 import Button from '../ui/Button'
-import { COMPANIES } from '../../data/companies'
 import { useAppStore } from '../../store/useAppStore'
 import type { Account } from '../../types'
 
@@ -14,7 +13,7 @@ interface Props {
 const SIZES = [10000, 25000, 50000, 100000, 150000, 200000, 300000]
 
 export default function CuentaModal({ open, onClose, account }: Props) {
-  const { addAccount, updateAccount } = useAppStore()
+  const { addAccount, updateAccount, companies } = useAppStore()
 
   const [form, setForm] = useState({
     name: account?.name ?? '',
@@ -77,7 +76,7 @@ export default function CuentaModal({ open, onClose, account }: Props) {
           <div>
             <label className={labelCls}>Empresa</label>
             <select className={inputCls} value={form.company} onChange={e => setForm(f => ({ ...f, company: e.target.value }))}>
-              {COMPANIES.map(c => <option key={c} value={c}>{c}</option>)}
+              {companies.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
             </select>
           </div>
 

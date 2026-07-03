@@ -1,6 +1,6 @@
 ﻿import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, CreditCard, Trophy, Zap, Activity, FileBarChart, LogOut, ChevronLeft, ChevronRight, User, Settings } from 'lucide-react'
+import { LayoutDashboard, CreditCard, Trophy, Zap, Activity, FileBarChart, LogOut, ChevronLeft, ChevronRight, User, Settings, Calculator, Sun, Moon, Building2, Banknote, BookOpen } from 'lucide-react'
 import { useAppStore } from '../../store/useAppStore'
 import { getLevelFromXp, getLevelProgress } from '../../utils/gamification'
 import Avatar from '../ui/Avatar'
@@ -8,17 +8,20 @@ import Avatar from '../ui/Avatar'
 const NAV_ITEMS = [
   { to: '/dashboard',      icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/cuentas',        icon: CreditCard,      label: 'Cuentas' },
+  { to: '/retiros',        icon: Banknote,        label: 'Retiros' },
   { to: '/ranking',        icon: Trophy,          label: 'Ranking' },
   { to: '/challenges',     icon: Zap,             label: 'Challenges' },
   { to: '/actividad',      icon: Activity,        label: 'Actividad' },
   { to: '/informes',       icon: FileBarChart,    label: 'Informes' },
+  { to: '/empresas',       icon: Building2,       label: 'Empresas' },
   { to: '/perfil',         icon: User,            label: 'Mi Perfil' },
-  { to: '/configuracion',  icon: Settings,        label: 'Configuración' },
+  { to: '/calculadora',    icon: Calculator,      label: 'Calculadora' },
+  { to: '/conceptos',     icon: BookOpen,        label: 'Conceptos' },
 ]
 
 export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(false)
-  const { currentUser, logout } = useAppStore()
+  const { currentUser, logout, theme, setTheme } = useAppStore()
   const navigate = useNavigate()
 
   const level    = currentUser ? getLevelFromXp(currentUser.xp) : null
@@ -39,16 +42,23 @@ export default function Sidebar() {
     <aside className={`relative flex flex-col h-screen ${sidebarBg} transition-all duration-300 flex-shrink-0 ${collapsed ? 'w-16' : 'w-60'}`}>
 
       {/* Logo */}
-      <div className={`flex items-center gap-3 px-4 py-5 border-b border-border ${collapsed ? 'justify-center' : ''}`}>
+      <div className={`flex items-center gap-3 px-4 py-5 border-b border-border ${collapsed ? 'justify-center flex-col' : ''}`}>
         <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#7C3AED] to-[#3B82F6] flex items-center justify-center flex-shrink-0 pulse-ring">
           <span className="text-white font-black text-sm">PT</span>
         </div>
         {!collapsed && (
-          <div>
+          <div className="flex-1 min-w-0">
             <div className="font-bold text-text text-sm leading-none">PropTracker</div>
             <div className="text-[10px] text-muted mt-0.5">Comunidad</div>
           </div>
         )}
+        <button
+          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+          title={theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+          className="w-8 h-8 rounded-lg flex items-center justify-center text-muted hover:text-text hover:bg-surface2 transition-colors flex-shrink-0"
+        >
+          {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+        </button>
       </div>
 
       {/* Nav */}
@@ -67,6 +77,20 @@ export default function Sidebar() {
           </NavLink>
         ))}
       </nav>
+
+      {/* Configuración — anclada encima del footer */}
+      <div className="px-2 pb-1">
+        <NavLink
+          to="/configuracion"
+          className={({ isActive }) =>
+            `${linkBase} ${isActive ? linkActive : linkIdle} ${collapsed ? 'justify-center' : ''}`
+          }
+          title={collapsed ? 'Configuración' : undefined}
+        >
+          <Settings size={18} className="flex-shrink-0" />
+          {!collapsed && <span>Configuración</span>}
+        </NavLink>
+      </div>
 
       {/* User footer */}
       {currentUser && (

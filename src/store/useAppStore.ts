@@ -1,12 +1,19 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { Account, User, DateRange, UserChallenge } from '../types'
+import type { Account, User, DateRange, UserChallenge, Company } from '../types'
 import { getLevelFromXp } from '../utils/gamification'
 import { getDefaultRange } from '../utils/dateFilters'
 import { XP_REWARDS } from '../utils/gamification'
 import { MOCK_ACCOUNTS } from './mockAccounts'
 import { authService }     from '../services/auth.service'
 import { accountsService } from '../services/accounts.service'
+import { COMPANIES, COMPANY_COLORS } from '../data/companies'
+
+const DEFAULT_COMPANIES: Company[] = COMPANIES.map(name => ({
+  id:    `c_${name.toLowerCase().replace(/\s+/g, '_')}`,
+  name,
+  color: COMPANY_COLORS[name] ?? '#7C3AED',
+}))
 
 export type Theme = 'dark' | 'light'
 
@@ -28,6 +35,9 @@ interface AppState {
   /* ── Gamification ────────────────────────────────────── */
   userChallenges: UserChallenge[]
 
+  /* ── Empresas ────────────────────────────────────────── */
+  companies: Company[]
+
   /* ─────────────────────────── ACTIONS ──────────────────── */
 
   /* Local (mock) — compatibilidad backward */
@@ -37,7 +47,7 @@ interface AppState {
 
   /* API — autenticación real */
   loginWithApi:    (username: string, password: string) => Promise<void>
-  registerWithApi: (username: string, displayName: string, password: string, email?: string) => Promise<void>
+  registerWithApi: (username: string, displayName: string, password: string, email?: string, inviteCode?: string) => Promise<void>
   logoutApi:       () => void
   initFromApi:     () => Promise<void>
 
@@ -46,7 +56,9 @@ interface AppState {
   updateAccount:     (id: string, updates: Partial<Account>) => void
   deleteAccount:     (id: string) => void
   approveEvaluation: (id: string) => void
-  addWithdrawal:     (accountId: string, amount: number, note?: string) => void
+  addWithdrawal:     (accountId: string, amount: number, note?: string, date?: string) => void
+  updateWithdrawal:  (accountId: string, withdrawalId: string, updates: { amount: number; date: string; note?: string }) => void
+  deleteWithdrawal:  (accountId: string, withdrawalId: string) => void
   addDailyEntry:     (accountId: string, date: string, pnl: number) => void
 
   /* Cuentas — async (API) */
@@ -69,6 +81,11 @@ interface AppState {
   addXp:     (amount: number) => void
   earnBadge: (badgeId: string) => void
   updateChallengeProgress: (challengeId: string, progress: number) => void
+
+  /* Empresas */
+  addCompany:    (company: Omit<Company, 'id'>) => void
+  updateCompany: (id: string, updates: Partial<Omit<Company, 'id'>>) => void
+  deleteCompany: (id: string) => void
 }
 
 function applyTheme(theme: Theme) {
@@ -89,10 +106,11 @@ export const useAppStore = create<AppState>()(
       dateRange:       getDefaultRange(),
       hideValues:      false,
       theme:           'dark',
-      apiMode:         false,   // ← cambiar a true cuando tengas el backend listo
+      apiMode:         false,
       loading:         false,
       error:           null,
       userChallenges:  [],
+      companies:       DEFAULT_COMPANIES,
 
       /* ── Auth local (mock) ──────────────────────────── */
       login:  (user) => set({ currentUser: user, isAuthenticated: true }),
@@ -129,10 +147,10 @@ export const useAppStore = create<AppState>()(
         }
       },
 
-      registerWithApi: async (username, displayName, password, email) => {
+      registerWithApi: async (username, displayName, password, email, inviteCode) => {
         set({ loading: true, error: null })
         try {
-          const { user } = await authService.register(username, displayName, password, email)
+          const { user } = await authService.register(username, displayName, password, email, inviteCode)
           set({ currentUser: user, isAuthenticated: true, loading: false })
         } catch (err) {
           set({ loading: false, error: (err as Error).message })
@@ -197,14 +215,39 @@ export const useAppStore = create<AppState>()(
         return { currentUser: { ...s.currentUser, accounts } }
       }),
 
-      addWithdrawal: (accountId, amount, note) => set(s => {
+      addWithdrawal: (accountId, amount, note, date) => set(s => {
         if (!s.currentUser) return {}
         const accounts = s.currentUser.accounts.map(a => {
           if (a.id !== accountId) return a
-          const withdrawal = { id: `w_${Date.now()}`, amount, date: new Date().toISOString(), note }
+          const withdrawal = { id: `w_${Date.now()}`, amount, date: date ? new Date(date).toISOString() : new Date().toISOString(), note }
           return { ...a, withdrawals: a.withdrawals + amount, withdrawalsList: [...a.withdrawalsList, withdrawal] }
         })
         get().addXp(XP_REWARDS.withdrawal)
+        return { currentUser: { ...s.currentUser, accounts } }
+      }),
+
+      updateWithdrawal: (accountId, withdrawalId, updates) => set(s => {
+        if (!s.currentUser) return {}
+        const accounts = s.currentUser.accounts.map(a => {
+          if (a.id !== accountId) return a
+          const old = a.withdrawalsList.find(w => w.id === withdrawalId)
+          const diff = updates.amount - (old?.amount ?? 0)
+          const withdrawalsList = a.withdrawalsList.map(w =>
+            w.id === withdrawalId ? { ...w, ...updates } : w
+          )
+          return { ...a, withdrawals: a.withdrawals + diff, withdrawalsList }
+        })
+        return { currentUser: { ...s.currentUser, accounts } }
+      }),
+
+      deleteWithdrawal: (accountId, withdrawalId) => set(s => {
+        if (!s.currentUser) return {}
+        const accounts = s.currentUser.accounts.map(a => {
+          if (a.id !== accountId) return a
+          const w = a.withdrawalsList.find(w => w.id === withdrawalId)
+          const withdrawalsList = a.withdrawalsList.filter(w => w.id !== withdrawalId)
+          return { ...a, withdrawals: a.withdrawals - (w?.amount ?? 0), withdrawalsList }
+        })
         return { currentUser: { ...s.currentUser, accounts } }
       }),
 
@@ -351,6 +394,19 @@ export const useAppStore = create<AppState>()(
         }
         return { userChallenges: [...s.userChallenges, newChallenge] }
       }),
+
+      /* ── Empresas ─────────────────────────────────────── */
+      addCompany: (company) => set(s => ({
+        companies: [...s.companies, { ...company, id: `c_${Date.now()}` }]
+      })),
+
+      updateCompany: (id, updates) => set(s => ({
+        companies: s.companies.map(c => c.id === id ? { ...c, ...updates } : c)
+      })),
+
+      deleteCompany: (id) => set(s => ({
+        companies: s.companies.filter(c => c.id !== id)
+      })),
     }),
     {
       name: 'prop-tracker-app',
@@ -359,6 +415,7 @@ export const useAppStore = create<AppState>()(
         isAuthenticated: s.isAuthenticated,
         hideValues:      s.hideValues,
         theme:           s.theme,
+        companies:       s.companies,
         apiMode:         s.apiMode,
         userChallenges:  s.userChallenges,
       }),

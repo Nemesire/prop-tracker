@@ -14,14 +14,16 @@ interface Props {
 export default function WithdrawalModal({ open, onClose, account }: Props) {
   const { addWithdrawal } = useAppStore()
   const [amount, setAmount] = useState('')
-  const [note, setNote] = useState('')
+  const [note,   setNote]   = useState('')
+  const [date,   setDate]   = useState(new Date().toISOString().slice(0, 10))
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!amount || Number(amount) <= 0) return
-    addWithdrawal(account.id, Number(amount), note || undefined)
+    addWithdrawal(account.id, Number(amount), note || undefined, date)
     setAmount('')
     setNote('')
+    setDate(new Date().toISOString().slice(0, 10))
     onClose()
   }
 
@@ -38,6 +40,10 @@ export default function WithdrawalModal({ open, onClose, account }: Props) {
         <div>
           <label className="block text-xs font-medium text-muted mb-1.5">Cantidad (€)</label>
           <input type="number" min="0.01" step="0.01" className={inputCls} value={amount} onChange={e => setAmount(e.target.value)} required placeholder="0.00" autoFocus />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-muted mb-1.5">Fecha</label>
+          <input type="date" className={inputCls} value={date} onChange={e => setDate(e.target.value)} required />
         </div>
         <div>
           <label className="block text-xs font-medium text-muted mb-1.5">Nota (opcional)</label>

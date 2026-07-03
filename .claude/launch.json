@@ -6,6 +6,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev", "--", "--port", "5173"],
       "port": 5173
+    },
+    {
+      "name": "prop-tracker-api",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["api/server.js"],
+      "port": 3001
     }
   ]
 }

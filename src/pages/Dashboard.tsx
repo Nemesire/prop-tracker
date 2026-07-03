@@ -1,5 +1,5 @@
 ﻿import { useState } from 'react'
-import { Eye, EyeOff, Share2, BarChart2, CreditCard, Percent, TrendingUp, TrendingDown, DollarSign } from 'lucide-react'
+import { Eye, EyeOff, Share2, ClipboardCheck, Percent, TrendingUp, TrendingDown, DollarSign, Trophy } from 'lucide-react'
 import { useAppStore } from '../store/useAppStore'
 import { calcCompanyStats, calcROI, calcFundingRatio, formatCurrency } from '../utils/calculations'
 import StatsCard from '../components/dashboard/StatsCard'
@@ -9,6 +9,23 @@ import DateRangePicker from '../components/ui/DateRangePicker'
 import ShareModal from '../components/share/ShareModal'
 import LevelBadge from '../components/gamification/LevelBadge'
 import { BADGES } from '../data/badges'
+import { getPresetRange } from '../utils/dateFilters'
+import type { DateRange } from '../types'
+
+/** Devuelve {from, to} efectivos para un DateRange (preset o custom) */
+function getEffectiveRange(dr: DateRange): { from: Date; to: Date } {
+  if (dr.preset && dr.preset !== 'custom') return getPresetRange(dr.preset)
+  return {
+    from: dr.from ?? new Date(2020, 0, 1),
+    to:   dr.to   ?? new Date(),
+  }
+}
+
+function inRange(dateStr: string, from: Date, to: Date): boolean {
+  const d = new Date(dateStr)
+  const toEnd = new Date(to); toEnd.setHours(23, 59, 59, 999)
+  return d >= from && d <= toEnd
+}
 
 export default function Dashboard() {
   const { currentUser, hideValues, toggleHideValues, dateRange, setDateRange } = useAppStore()
@@ -16,29 +33,54 @@ export default function Dashboard() {
 
   if (!currentUser) return null
 
-  const accounts = currentUser.accounts
+  const { from, to } = getEffectiveRange(dateRange)
+  const allAccounts = currentUser.accounts
+
+  // Cuentas cuya fecha de inicio cae en el rango
+  const accounts = allAccounts.filter(a => inRange(a.startDate, from, to))
+
+  // Para la cuenta live activa no filtramos por fecha (estado actual)
+  const liveActive = allAccounts.filter(a => a.type === 'live' && a.status === 'activa').length
+
+  // Gastos = cuentas iniciadas en el rango
   const totalCost = accounts.reduce((s, a) => s + a.cost, 0)
-  const totalWithdrawals = accounts.reduce((s, a) => s + a.withdrawals, 0)
-  const totalEarnings = accounts.reduce((s, a) => s + a.earnings, 0)
+
+  // Retiros dentro del rango (de todas las cuentas)
+  const withdrawalsInRange = allAccounts.flatMap(a =>
+    a.withdrawalsList.filter(w => inRange(w.date, from, to))
+  )
+  const totalWithdrawals = withdrawalsInRange.reduce((s, w) => s + w.amount, 0)
+  const withdrawalCount  = withdrawalsInRange.length
+
+  // Entradas diarias dentro del rango
+  const allEntries = allAccounts.flatMap(a =>
+    a.dailyEntries.filter(e => inRange(e.date, from, to))
+  )
+  const totalEarnings = allEntries.reduce((s, e) => s + e.pnl, 0)
+
   const profit = totalWithdrawals - totalCost
   const roi = calcROI(accounts)
-  const fundingRatio = calcFundingRatio(accounts)
+  const fundingRatio = calcFundingRatio(allAccounts)
   const companyStats = calcCompanyStats(accounts)
 
-  const evaluaciones = accounts.filter(a => a.type === 'evaluacion').length
-  const liveActive = accounts.filter(a => a.type === 'live' && a.status === 'activa').length
+  // Cuentas con entradas diarias y costes filtrados por rango → para el gráfico
+  const accountsForChart = allAccounts.map(a => ({
+    ...a,
+    dailyEntries: a.dailyEntries.filter(e => inRange(e.date, from, to)),
+    cost: inRange(a.startDate, from, to) ? a.cost : 0,
+  }))
 
-  // Day stats from all daily entries
-  const allEntries = accounts.flatMap(a => a.dailyEntries)
+  const evaluaciones = accounts.filter(a => a.type === 'evaluacion').length
+
+  // Day stats
   const dayMap = new Map<string, number>()
   for (const e of allEntries) {
     dayMap.set(e.date, (dayMap.get(e.date) ?? 0) + e.pnl)
   }
   const dayValues = Array.from(dayMap.values())
-  const bestDay = dayValues.length > 0 ? Math.max(...dayValues) : 0
+  const bestDay  = dayValues.length > 0 ? Math.max(...dayValues) : 0
   const worstDay = dayValues.length > 0 ? Math.min(...dayValues) : 0
-  const avgDay = dayValues.length > 0 ? dayValues.reduce((s, v) => s + v, 0) / dayValues.length : 0
-  const withdrawalCount = accounts.reduce((s, a) => s + a.withdrawalsList.length, 0)
+  const avgDay   = dayValues.length > 0 ? dayValues.reduce((s, v) => s + v, 0) / dayValues.length : 0
 
   const fmt = (n: number) => formatCurrency(n, hideValues)
 
@@ -82,15 +124,15 @@ export default function Dashboard() {
         <StatsCard
           title="Evaluaciones"
           value={String(evaluaciones)}
-          icon={<BarChart2 size={20} />}
+          icon={<ClipboardCheck size={20} />}
           color="#F59E0B"
           trend={{ label: '0 en progreso' }}
         />
         <StatsCard
           title="Cuentas Live"
           value={String(liveActive)}
-          icon={<CreditCard size={20} />}
-          color="#22C55E"
+          icon={<Trophy size={20} />}
+          color="#F59E0B"
           trend={{ label: `${liveActive} activas` }}
         />
         <StatsCard
@@ -99,20 +141,22 @@ export default function Dashboard() {
           icon={<Percent size={20} />}
           color="#3B82F6"
           trend={{ label: `Retiros: ${withdrawalCount * 20}%` }}
+          tooltip="Es la cantidad de veces que te fondeas de los exámenes que haces."
         />
         <StatsCard
           title="Gastos Totales"
           value={fmt(totalCost)}
-          subtitle={`Promedio: ${fmt(totalCost / Math.max(accounts.length, 1))}`}
           icon={<TrendingDown size={20} />}
           color="#EF4444"
+          trend={{ label: `↓ ${fmt(totalCost / Math.max(accounts.length, 1))}`, positive: false }}
         />
         <StatsCard
           title="Ganancias Totales"
           value={fmt(totalEarnings)}
-          subtitle={`Promedio: ${fmt(totalEarnings / Math.max(accounts.length, 1))}`}
           icon={<TrendingUp size={20} />}
           color="#22C55E"
+          trend={{ label: `↑ ${fmt(totalEarnings / Math.max(accounts.length, 1))}`, positive: true }}
+          tooltip="Total retirado de todas las empresas."
         />
         <StatsCard
           title="Beneficio Neto"
@@ -121,6 +165,7 @@ export default function Dashboard() {
           icon={<DollarSign size={20} />}
           color={profit >= 0 ? '#22C55E' : '#EF4444'}
           trend={{ label: `ROI: ${roi.toFixed(1)}%`, positive: roi >= 0 }}
+          tooltip="Ganancias netas pero antes de impuestos."
         />
       </div>
 
@@ -128,21 +173,27 @@ export default function Dashboard() {
       <div className="bg-surface border border-border rounded-2xl p-5">
         <h2 className="font-semibold text-text mb-1">Evolución del Capital</h2>
         <p className="text-xs text-muted mb-5">Seguimiento de tu rendimiento en el tiempo</p>
-        <CapitalChart accounts={accounts} hideValues={hideValues} />
+        <CapitalChart accounts={accountsForChart} hideValues={hideValues} />
       </div>
 
       {/* Day Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: 'Mejor Día', value: fmt(bestDay), icon: '📈', color: '#22C55E' },
-          { label: 'Peor Día', value: fmt(worstDay), icon: '📉', color: '#EF4444' },
-          { label: 'Promedio Diario', value: fmt(avgDay), icon: '📊', color: '#3B82F6' },
-          { label: 'Retiros', value: String(withdrawalCount), icon: '💸', color: '#F59E0B' },
-        ].map(({ label, value, icon, color }) => (
-          <div key={label} className="bg-surface border border-border rounded-2xl p-4 text-center">
-            <div className="text-2xl mb-2">{icon}</div>
-            <div className="text-xl font-bold" style={{ color }}>{value}</div>
-            <div className="text-xs text-muted mt-1">{label}</div>
+          { label: 'Mejor Día',       value: fmt(bestDay),         icon: '📈', color: '#22C55E', sub: 'Mayor ganancia diaria' },
+          { label: 'Peor Día',        value: fmt(worstDay),        icon: '📉', color: '#EF4444', sub: 'Mayor pérdida diaria' },
+          { label: 'Promedio Diario', value: fmt(avgDay),          icon: '📊', color: '#3B82F6', sub: 'Cambio promedio por día' },
+          { label: 'Retiros',         value: String(withdrawalCount), icon: '💸', color: '#F59E0B', sub: 'Número de retiros realizados' },
+        ].map(({ label, value, icon, color, sub }) => (
+          <div key={label} className="bg-surface border border-border rounded-2xl p-4">
+            {/* Título izquierda — icono derecha */}
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs font-semibold text-muted">{label}</span>
+              <span className="text-xl leading-none">{icon}</span>
+            </div>
+            {/* Valor grande */}
+            <div className="text-2xl font-black mb-1" style={{ color }}>{value}</div>
+            {/* Subtítulo */}
+            <div className="text-xs text-muted">{sub}</div>
           </div>
         ))}
       </div>

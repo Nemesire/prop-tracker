@@ -1,3 +1,11 @@
+export interface Company {
+  id: string
+  name: string
+  color: string
+  website?: string
+  country?: string
+}
+
 export type AccountType = 'evaluacion' | 'live'
 export type AccountStatus = 'activa' | 'suspendida' | 'completada' | 'fallida'
 
@@ -31,10 +39,16 @@ export interface Account {
   notes?: string
 }
 
+export type UserRole   = 'admin' | 'member'
+export type UserStatus = 'active' | 'pending' | 'suspended'
+
 export interface User {
   id: string
   username: string
   displayName: string
+  email?: string
+  role?: UserRole
+  status?: UserStatus
   avatar?: string
   bio?: string
   country?: string
@@ -46,6 +60,30 @@ export interface User {
   accounts: Account[]
   following: string[]
   followers: string[]
+}
+
+/** Usuario de la comunidad gestionado por el admin */
+export interface CommunityMember {
+  id: string
+  username: string
+  displayName: string
+  email: string
+  role: UserRole
+  status: UserStatus
+  joinDate: string
+  inviteCode?: string
+  notes?: string
+}
+
+/** Código de invitación generado por el admin */
+export interface InviteCode {
+  id: string
+  code: string
+  createdAt: string
+  expiresAt?: string
+  usedBy?: string
+  usedAt?: string
+  note?: string
 }
 
 export type ChallengeMetric = 'approvals' | 'withdrawals' | 'roi' | 'accounts' | 'profit' | 'streak'

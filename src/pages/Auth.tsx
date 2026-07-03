@@ -1,18 +1,32 @@
-﻿import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+﻿import { useState, useEffect } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAppStore } from '../store/useAppStore'
+import { useAdminStore } from '../store/useAdminStore'
 import Button from '../components/ui/Button'
 
 export default function Auth() {
   const [mode, setMode]           = useState<'login' | 'register'>('login')
   const [username, setUsername]   = useState('')
   const [displayName, setDisplayName] = useState('')
+  const [email, setEmail]         = useState('')
   const [password, setPassword]   = useState('')
+  const [inviteCode, setInviteCode] = useState('')
   const [error, setError]         = useState('')
   const [loading, setLoading]     = useState(false)
 
-  const { loginWithApi, registerWithApi } = useAppStore()
-  const navigate = useNavigate()
+  const { loginWithApi, registerWithApi, register } = useAppStore()
+  const { validateInvite, consumeInvite } = useAdminStore()
+  const navigate     = useNavigate()
+  const [params]     = useSearchParams()
+
+  useEffect(() => {
+    const code = params.get('invite')
+    if (code) { setInviteCode(code.toUpperCase()); setMode('register') }
+  }, [params])
+
+  // En desarrollo siempre modo local (no hay DB local).
+  // En producción (Vercel) siempre API real.
+  const useLocalMode = import.meta.env.DEV
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -29,7 +43,31 @@ export default function Auth() {
           setError('La contraseña debe tener al menos 6 caracteres')
           return
         }
-        await registerWithApi(username.toLowerCase().trim(), displayName.trim(), password)
+        if (useLocalMode) {
+          // Desarrollo: validación local del código (si hay invitaciones creadas)
+          const { invites } = useAdminStore.getState()
+          if (invites.length > 0) {
+            if (!inviteCode.trim()) {
+              setError('Necesitas un código de invitación para registrarte')
+              return
+            }
+            if (!validateInvite(inviteCode.trim())) {
+              setError('Código de invitación inválido o ya utilizado')
+              return
+            }
+          }
+          register(username.toLowerCase().trim(), displayName.trim())
+          if (inviteCode.trim()) consumeInvite(inviteCode.trim(), username.toLowerCase().trim())
+        } else {
+          // Producción: el servidor valida y consume el código de invitación
+          await registerWithApi(
+            username.toLowerCase().trim(),
+            displayName.trim(),
+            password,
+            email.trim() || undefined,
+            inviteCode.trim() || undefined
+          )
+        }
         navigate('/dashboard')
 
       } else {
@@ -37,16 +75,16 @@ export default function Auth() {
           setError('Introduce tu usuario y contraseña')
           return
         }
-        await loginWithApi(username.toLowerCase().trim(), password)
+        if (useLocalMode) {
+          register(username.toLowerCase().trim(), username.trim())
+        } else {
+          await loginWithApi(username.toLowerCase().trim(), password)
+        }
         navigate('/dashboard')
       }
     } catch (err: unknown) {
       const msg = (err as Error).message
-      if (msg.includes('fetch') || msg.includes('network') || msg.includes('Failed')) {
-        setError('No se puede conectar al servidor. Inténtalo de nuevo.')
-      } else {
-        setError(msg)
-      }
+      setError(msg || 'Error al iniciar sesión')
     } finally {
       setLoading(false)
     }
@@ -99,15 +137,38 @@ export default function Auth() {
             </div>
 
             {mode === 'register' && (
-              <div>
-                <label className="block text-xs font-medium text-muted mb-1.5">Nombre público</label>
-                <input
-                  className={inputCls}
-                  value={displayName}
-                  onChange={e => setDisplayName(e.target.value)}
-                  placeholder="Tu Nombre"
-                />
-              </div>
+              <>
+                <div>
+                  <label className="block text-xs font-medium text-muted mb-1.5">Nombre público</label>
+                  <input
+                    className={inputCls}
+                    value={displayName}
+                    onChange={e => setDisplayName(e.target.value)}
+                    placeholder="Tu Nombre"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-muted mb-1.5">Email <span className="text-muted opacity-60">(opcional)</span></label>
+                  <input
+                    type="email"
+                    className={inputCls}
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    placeholder="tu@email.com"
+                    autoComplete="email"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-muted mb-1.5">Código de invitación</label>
+                  <input
+                    className={inputCls}
+                    value={inviteCode}
+                    onChange={e => setInviteCode(e.target.value.toUpperCase())}
+                    placeholder="ABC123"
+                    style={{ fontFamily: 'monospace', letterSpacing: '0.1em' }}
+                  />
+                </div>
+              </>
             )}
 
             <div>

@@ -1,13 +1,15 @@
 ﻿import { useState, useRef } from 'react'
-import { Sun, Moon, User, Globe, Shield, Download, Camera, Check } from 'lucide-react'
+import { Sun, Moon, User, Globe, Shield, Download, Camera, Check, ShieldAlert } from 'lucide-react'
 import { useAppStore } from '../store/useAppStore'
 import type { Theme } from '../store/useAppStore'
 import Avatar from '../components/ui/Avatar'
 import Button from '../components/ui/Button'
+import AdminPanel from './admin/AdminPanel'
+import { isAdminUser } from '../store/useAdminStore'
 
-type Section = 'perfil' | 'apariencia' | 'privacidad' | 'cuenta'
+type Section = 'perfil' | 'apariencia' | 'privacidad' | 'cuenta' | 'admin'
 
-const SECTIONS: { id: Section; label: string; icon: typeof User }[] = [
+const BASE_SECTIONS: { id: Section; label: string; icon: typeof User }[] = [
   { id: 'perfil',      label: 'Perfil',       icon: User },
   { id: 'apariencia',  label: 'Apariencia',   icon: Sun },
   { id: 'privacidad',  label: 'Privacidad',   icon: Shield },
@@ -19,6 +21,11 @@ const COUNTRIES = ['España', 'México', 'Argentina', 'Colombia', 'Chile', 'Per�
 export default function Configuracion() {
   const { currentUser, setTheme, theme, updateProfile } = useAppStore()
   const [section, setSection] = useState<Section>('perfil')
+
+  const isAdmin = isAdminUser(currentUser?.email, currentUser?.username, currentUser?.role)
+  const SECTIONS = isAdmin
+    ? [...BASE_SECTIONS, { id: 'admin' as Section, label: 'Admin', icon: ShieldAlert }]
+    : BASE_SECTIONS
   const [saved, setSaved] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
@@ -252,6 +259,9 @@ export default function Configuracion() {
               </div>
             </div>
           )}
+
+          {/* ADMIN */}
+          {section === 'admin' && isAdmin && <AdminPanel />}
 
           {/* CUENTA */}
           {section === 'cuenta' && (

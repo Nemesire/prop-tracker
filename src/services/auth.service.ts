@@ -11,15 +11,16 @@ export const authService = {
     return data
   },
 
-  /** Registro de nuevo usuario */
+  /** Registro de nuevo usuario (requiere código de invitación en producción) */
   async register(
     username: string,
     displayName: string,
     password: string,
-    email?: string
+    email?: string,
+    inviteCode?: string
   ): Promise<AuthResponse> {
     const data = await api.post<AuthResponse>('/auth/register', {
-      username, displayName, password, email,
+      username, displayName, password, email, inviteCode,
     })
     localStorage.setItem('pt_token', data.token)
     return data

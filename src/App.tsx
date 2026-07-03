@@ -12,6 +12,10 @@ import Actividad from './pages/Actividad'
 import Informes from './pages/Informes'
 import Perfil from './pages/Perfil'
 import Configuracion from './pages/Configuracion'
+import Calculadora from './pages/Calculadora'
+import Empresas from './pages/Empresas'
+import Retiros from './pages/Retiros'
+import Conceptos from './pages/Conceptos'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAppStore(s => s.isAuthenticated)
@@ -56,6 +60,10 @@ export default function App() {
         <Route path="/perfil"       element={<ProtectedRoute><Layout><Perfil       /></Layout></ProtectedRoute>} />
         <Route path="/perfil/:username" element={<ProtectedRoute><Layout><Perfil   /></Layout></ProtectedRoute>} />
         <Route path="/configuracion" element={<ProtectedRoute><Layout><Configuracion /></Layout></ProtectedRoute>} />
+        <Route path="/calculadora"   element={<ProtectedRoute><Layout><Calculadora   /></Layout></ProtectedRoute>} />
+        <Route path="/empresas"      element={<ProtectedRoute><Layout><Empresas      /></Layout></ProtectedRoute>} />
+        <Route path="/retiros"       element={<ProtectedRoute><Layout><Retiros       /></Layout></ProtectedRoute>} />
+        <Route path="/conceptos"     element={<ProtectedRoute><Layout><Conceptos     /></Layout></ProtectedRoute>} />
 
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />

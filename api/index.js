@@ -25,8 +25,15 @@ app.use(limiter)
 /* ── Body parser ─────────────────────────────────────── */
 app.use(express.json({ limit: '10mb' }))
 
+/* ── Migración idempotente (una vez por instancia) ───── */
+const ensureSchema = require('./config/ensureSchema')
+app.use(async (_req, _res, next) => {
+  try { await ensureSchema(); next() } catch (err) { next(err) }
+})
+
 /* ── Routes ──────────────────────────────────────────── */
 app.use('/api/auth',          require('./routes/auth'))
+app.use('/api/admin',         require('./routes/admin'))
 app.use('/api/accounts',      require('./routes/accounts'))
 app.use('/api/daily-entries', require('./routes/dailyEntries'))
 app.use('/api/withdrawals',   require('./routes/withdrawals'))

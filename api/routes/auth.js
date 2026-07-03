@@ -12,6 +12,9 @@ const mapUser = (u, accounts = []) => ({
   id:          u.id,
   username:    u.username,
   displayName: u.display_name,
+  email:       u.email    || undefined,
+  role:        u.role     || 'member',
+  status:      u.status   || 'active',
   avatar:      u.avatar   || undefined,
   bio:         u.bio      || undefined,
   country:     u.country  || undefined,
@@ -33,18 +36,44 @@ router.post('/register', [
   const errors = validationResult(req)
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() })
 
-  const { username, displayName, password, email } = req.body
+  const { username, displayName, password, email, inviteCode } = req.body
 
   try {
     const exists = await pool.query('SELECT id FROM users WHERE username = $1', [username.toLowerCase()])
     if (exists.rows[0]) return res.status(409).json({ error: 'El nombre de usuario ya existe' })
 
+    // Registro solo con invitación (salvo bootstrap: primera cuenta de la BD)
+    const { rows: countRows } = await pool.query('SELECT COUNT(*)::int AS n FROM users')
+    let inviteId = null
+    if (countRows[0].n > 0) {
+      if (!inviteCode || !String(inviteCode).trim()) {
+        return res.status(403).json({ error: 'Necesitas un código de invitación para registrarte' })
+      }
+      const { rows: invRows } = await pool.query(
+        `SELECT id FROM invite_codes
+         WHERE upper(code) = upper($1) AND used_by IS NULL
+           AND (expires_at IS NULL OR expires_at > now())`,
+        [String(inviteCode).trim()]
+      )
+      if (!invRows[0]) {
+        return res.status(403).json({ error: 'Código de invitación inválido o ya utilizado' })
+      }
+      inviteId = invRows[0].id
+    }
+
     const passwordHash = await bcrypt.hash(password, 12)
     const { rows } = await pool.query(`
       INSERT INTO users (username, display_name, email, password_hash)
       VALUES ($1, $2, $3, $4)
-      RETURNING id, username, display_name, avatar, bio, country, is_public, xp, level, badges, join_date
+      RETURNING id, username, display_name, email, role, status, avatar, bio, country, is_public, xp, level, badges, join_date
     `, [username.toLowerCase(), displayName, email || null, passwordHash])
+
+    if (inviteId) {
+      await pool.query(
+        'UPDATE invite_codes SET used_by = $1, used_at = now() WHERE id = $2',
+        [username.toLowerCase(), inviteId]
+      )
+    }
 
     const token = signToken(rows[0].id)
     res.status(201).json({ token, user: mapUser(rows[0]) })
@@ -70,6 +99,9 @@ router.post('/login', [
     if (!user || !(await bcrypt.compare(password, user.password_hash))) {
       return res.status(401).json({ error: 'Usuario o contraseña incorrectos' })
     }
+    if (user.status === 'suspended') {
+      return res.status(403).json({ error: 'Tu cuenta está suspendida. Contacta con el administrador.' })
+    }
 
     const token = signToken(user.id)
     res.json({ token, user: mapUser(user) })
@@ -82,7 +114,7 @@ router.post('/login', [
 router.get('/me', auth, async (req, res) => {
   try {
     const { rows } = await pool.query(
-      `SELECT id, username, display_name, avatar, bio, country, is_public, xp, level, badges, join_date
+      `SELECT id, username, display_name, email, role, status, avatar, bio, country, is_public, xp, level, badges, join_date
        FROM users WHERE id = $1`,
       [req.user.id]
     )
