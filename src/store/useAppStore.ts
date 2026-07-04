@@ -9,6 +9,10 @@ import { authService }     from '../services/auth.service'
 import { accountsService } from '../services/accounts.service'
 import { COMPANIES, COMPANY_COLORS } from '../data/companies'
 
+/** DEV = demo local en memoria (sin backend garantizado).
+ *  PROD = todas las escrituras de cuentas/retiros persisten en Neon vía API. */
+const REMOTE = !import.meta.env.DEV
+
 const DEFAULT_COMPANIES: Company[] = COMPANIES.map(name => ({
   id:    `c_${name.toLowerCase().replace(/\s+/g, '_')}`,
   name,
@@ -50,25 +54,18 @@ interface AppState {
   registerWithApi: (username: string, displayName: string, password: string, email?: string, inviteCode?: string) => Promise<void>
   logoutApi:       () => void
   initFromApi:     () => Promise<void>
+  loadAccountsFromApi: () => Promise<void>
 
-  /* Cuentas — sincrono (local) */
-  addAccount:        (account: Omit<Account, 'id' | 'userId' | 'dailyEntries' | 'withdrawalsList'>) => void
-  updateAccount:     (id: string, updates: Partial<Account>) => void
-  deleteAccount:     (id: string) => void
-  approveEvaluation: (id: string) => void
-  addWithdrawal:     (accountId: string, amount: number, note?: string, date?: string) => void
-  updateWithdrawal:  (accountId: string, withdrawalId: string, updates: { amount: number; date: string; note?: string }) => void
-  deleteWithdrawal:  (accountId: string, withdrawalId: string) => void
+  /* Cuentas — en producción persisten en la API (Neon); en dev quedan en memoria/localStorage */
+  addAccount:        (account: Omit<Account, 'id' | 'userId' | 'dailyEntries' | 'withdrawalsList'>) => Promise<void>
+  updateAccount:     (id: string, updates: Partial<Account>) => Promise<void>
+  deleteAccount:     (id: string) => Promise<void>
+  resetAccount:      (id: string, resetCost: number, startDate: string) => Promise<void>
+  approveEvaluation: (id: string) => Promise<void>
+  addWithdrawal:     (accountId: string, amount: number, note?: string, date?: string) => Promise<void>
+  updateWithdrawal:  (accountId: string, withdrawalId: string, updates: { amount: number; date: string; note?: string }) => Promise<void>
+  deleteWithdrawal:  (accountId: string, withdrawalId: string) => Promise<void>
   addDailyEntry:     (accountId: string, date: string, pnl: number) => void
-
-  /* Cuentas — async (API) */
-  loadAccountsFromApi:  () => Promise<void>
-  createAccountApi:     (account: Omit<Account, 'id' | 'userId' | 'dailyEntries' | 'withdrawalsList'>) => Promise<void>
-  updateAccountApi:     (id: string, updates: Partial<Account>) => Promise<void>
-  deleteAccountApi:     (id: string) => Promise<void>
-  addWithdrawalApi:     (accountId: string, amount: number, note?: string) => Promise<void>
-  addDailyEntryApi:     (accountId: string, date: string, pnl: number) => Promise<void>
-  approveEvaluationApi: (id: string) => Promise<void>
 
   /* Misc */
   setDateRange:     (range: DateRange) => void
@@ -182,78 +179,163 @@ export const useAppStore = create<AppState>()(
         }
       },
 
-      /* ── Cuentas sincrono (local) ───────────────────── */
-      addAccount: (account) => set(s => {
-        if (!s.currentUser) return {}
-        const newAcc: Account = {
-          ...account,
-          id:              `acc_${Date.now()}`,
-          userId:          s.currentUser.id,
-          dailyEntries:    [],
-          withdrawalsList: [],
+      loadAccountsFromApi: async () => {
+        try {
+          const accounts = await accountsService.getAll()
+          set(s => s.currentUser ? { currentUser: { ...s.currentUser, accounts } } : {})
+        } catch (err) {
+          console.error('Error cargando cuentas:', err)
         }
-        const accounts = [...s.currentUser.accounts, newAcc]
-        get().addXp(XP_REWARDS.account_added)
-        return { currentUser: { ...s.currentUser, accounts } }
-      }),
+      },
 
-      updateAccount: (id, updates) => set(s => {
-        if (!s.currentUser) return {}
-        const accounts = s.currentUser.accounts.map(a => a.id === id ? { ...a, ...updates } : a)
-        return { currentUser: { ...s.currentUser, accounts } }
-      }),
-
-      deleteAccount: (id) => set(s => {
-        if (!s.currentUser) return {}
-        const accounts = s.currentUser.accounts.filter(a => a.id !== id)
-        return { currentUser: { ...s.currentUser, accounts } }
-      }),
-
-      approveEvaluation: (id) => set(s => {
-        if (!s.currentUser) return {}
-        const accounts = s.currentUser.accounts.map(a =>
-          a.id === id ? { ...a, type: 'live' as const, status: 'activa' as const } : a
-        )
-        get().addXp(XP_REWARDS.evaluation_passed)
-        return { currentUser: { ...s.currentUser, accounts } }
-      }),
-
-      addWithdrawal: (accountId, amount, note, date) => set(s => {
-        if (!s.currentUser) return {}
-        const accounts = s.currentUser.accounts.map(a => {
-          if (a.id !== accountId) return a
-          const withdrawal = { id: `w_${Date.now()}`, amount, date: date ? new Date(date).toISOString() : new Date().toISOString(), note }
-          return { ...a, withdrawals: a.withdrawals + amount, withdrawalsList: [...a.withdrawalsList, withdrawal] }
-        })
-        get().addXp(XP_REWARDS.withdrawal)
-        return { currentUser: { ...s.currentUser, accounts } }
-      }),
-
-      updateWithdrawal: (accountId, withdrawalId, updates) => set(s => {
-        if (!s.currentUser) return {}
-        const accounts = s.currentUser.accounts.map(a => {
-          if (a.id !== accountId) return a
-          const old = a.withdrawalsList.find(w => w.id === withdrawalId)
-          const diff = updates.amount - (old?.amount ?? 0)
-          const withdrawalsList = a.withdrawalsList.map(w =>
-            w.id === withdrawalId ? { ...w, ...updates } : w
+      /* ── Cuentas ──────────────────────────────────────
+       * En producción (REMOTE) cada acción llama a la API y persiste en Neon.
+       * En desarrollo se mantiene en memoria/localStorage para el modo demo. */
+      addAccount: async (account) => {
+        if (REMOTE) {
+          const created = await accountsService.create(account)
+          set(s => s.currentUser
+            ? { currentUser: { ...s.currentUser, accounts: [...s.currentUser.accounts, created] } }
+            : {}
           )
-          return { ...a, withdrawals: a.withdrawals + diff, withdrawalsList }
-        })
-        return { currentUser: { ...s.currentUser, accounts } }
-      }),
+        } else {
+          set(s => {
+            if (!s.currentUser) return {}
+            const newAcc: Account = {
+              ...account,
+              id:              `acc_${Date.now()}`,
+              userId:          s.currentUser.id,
+              dailyEntries:    [],
+              withdrawalsList: [],
+            }
+            return { currentUser: { ...s.currentUser, accounts: [...s.currentUser.accounts, newAcc] } }
+          })
+        }
+        get().addXp(XP_REWARDS.account_added)
+      },
 
-      deleteWithdrawal: (accountId, withdrawalId) => set(s => {
-        if (!s.currentUser) return {}
-        const accounts = s.currentUser.accounts.map(a => {
-          if (a.id !== accountId) return a
-          const w = a.withdrawalsList.find(w => w.id === withdrawalId)
-          const withdrawalsList = a.withdrawalsList.filter(w => w.id !== withdrawalId)
-          return { ...a, withdrawals: a.withdrawals - (w?.amount ?? 0), withdrawalsList }
-        })
-        return { currentUser: { ...s.currentUser, accounts } }
-      }),
+      updateAccount: async (id, updates) => {
+        if (REMOTE) {
+          const updated = await accountsService.update(id, updates)
+          set(s => {
+            if (!s.currentUser) return {}
+            const accounts = s.currentUser.accounts.map(a => a.id === id ? { ...a, ...updated } : a)
+            return { currentUser: { ...s.currentUser, accounts } }
+          })
+        } else {
+          set(s => {
+            if (!s.currentUser) return {}
+            const accounts = s.currentUser.accounts.map(a => a.id === id ? { ...a, ...updates } : a)
+            return { currentUser: { ...s.currentUser, accounts } }
+          })
+        }
+      },
 
+      deleteAccount: async (id) => {
+        if (REMOTE) await accountsService.delete(id)
+        set(s => {
+          if (!s.currentUser) return {}
+          return { currentUser: { ...s.currentUser, accounts: s.currentUser.accounts.filter(a => a.id !== id) } }
+        })
+      },
+
+      /** Resetea una cuenta: acumula el coste del reset, pone contadores a cero y borra el histórico */
+      resetAccount: async (id, resetCost, startDate) => {
+        if (REMOTE) {
+          const updated = await accountsService.reset(id, resetCost, startDate)
+          set(s => {
+            if (!s.currentUser) return {}
+            const accounts = s.currentUser.accounts.map(a => a.id === id ? updated : a)
+            return { currentUser: { ...s.currentUser, accounts } }
+          })
+        } else {
+          set(s => {
+            if (!s.currentUser) return {}
+            const accounts = s.currentUser.accounts.map(a => a.id === id
+              ? {
+                  ...a,
+                  cost:            a.cost + resetCost,
+                  earnings:        0,
+                  withdrawals:     0,
+                  dailyEntries:    [],
+                  withdrawalsList: [],
+                  startDate,
+                  status:          'activa' as const,
+                }
+              : a)
+            return { currentUser: { ...s.currentUser, accounts } }
+          })
+        }
+      },
+
+      approveEvaluation: async (id) => {
+        if (REMOTE) await accountsService.update(id, { type: 'live', status: 'activa' })
+        set(s => {
+          if (!s.currentUser) return {}
+          const accounts = s.currentUser.accounts.map(a =>
+            a.id === id ? { ...a, type: 'live' as const, status: 'activa' as const } : a
+          )
+          return { currentUser: { ...s.currentUser, accounts } }
+        })
+        get().addXp(XP_REWARDS.evaluation_passed)
+      },
+
+      addWithdrawal: async (accountId, amount, note, date) => {
+        if (REMOTE) {
+          const withdrawal = await accountsService.addWithdrawal(accountId, amount, note, date)
+          set(s => {
+            if (!s.currentUser) return {}
+            const accounts = s.currentUser.accounts.map(a => a.id === accountId
+              ? { ...a, withdrawals: a.withdrawals + amount, withdrawalsList: [...a.withdrawalsList, withdrawal] }
+              : a)
+            return { currentUser: { ...s.currentUser, accounts } }
+          })
+        } else {
+          set(s => {
+            if (!s.currentUser) return {}
+            const accounts = s.currentUser.accounts.map(a => {
+              if (a.id !== accountId) return a
+              const withdrawal = { id: `w_${Date.now()}`, amount, date: date ? new Date(date).toISOString() : new Date().toISOString(), note }
+              return { ...a, withdrawals: a.withdrawals + amount, withdrawalsList: [...a.withdrawalsList, withdrawal] }
+            })
+            return { currentUser: { ...s.currentUser, accounts } }
+          })
+        }
+        get().addXp(XP_REWARDS.withdrawal)
+      },
+
+      updateWithdrawal: async (accountId, withdrawalId, updates) => {
+        if (REMOTE) await accountsService.updateWithdrawal(withdrawalId, updates)
+        set(s => {
+          if (!s.currentUser) return {}
+          const accounts = s.currentUser.accounts.map(a => {
+            if (a.id !== accountId) return a
+            const old = a.withdrawalsList.find(w => w.id === withdrawalId)
+            const diff = updates.amount - (old?.amount ?? 0)
+            const withdrawalsList = a.withdrawalsList.map(w =>
+              w.id === withdrawalId ? { ...w, ...updates } : w
+            )
+            return { ...a, withdrawals: a.withdrawals + diff, withdrawalsList }
+          })
+          return { currentUser: { ...s.currentUser, accounts } }
+        })
+      },
+
+      deleteWithdrawal: async (accountId, withdrawalId) => {
+        if (REMOTE) await accountsService.deleteWithdrawal(withdrawalId)
+        set(s => {
+          if (!s.currentUser) return {}
+          const accounts = s.currentUser.accounts.map(a => {
+            if (a.id !== accountId) return a
+            const w = a.withdrawalsList.find(w => w.id === withdrawalId)
+            const withdrawalsList = a.withdrawalsList.filter(w => w.id !== withdrawalId)
+            return { ...a, withdrawals: a.withdrawals - (w?.amount ?? 0), withdrawalsList }
+          })
+          return { currentUser: { ...s.currentUser, accounts } }
+        })
+      },
+
+      /** Nota: aún no expuesto en ninguna pantalla — se mantiene solo en memoria/local */
       addDailyEntry: (accountId, date, pnl) => set(s => {
         if (!s.currentUser) return {}
         const accounts = s.currentUser.accounts.map(a => {
@@ -266,81 +348,6 @@ export const useAppStore = create<AppState>()(
         })
         return { currentUser: { ...s.currentUser, accounts } }
       }),
-
-      /* ── Cuentas async (API) ────────────────────────── */
-      loadAccountsFromApi: async () => {
-        try {
-          const accounts = await accountsService.getAll()
-          set(s => s.currentUser ? { currentUser: { ...s.currentUser, accounts } } : {})
-        } catch (err) {
-          console.error('Error cargando cuentas:', err)
-        }
-      },
-
-      createAccountApi: async (account) => {
-        const created = await accountsService.create(account)
-        set(s => s.currentUser
-          ? { currentUser: { ...s.currentUser, accounts: [...s.currentUser.accounts, created] } }
-          : {}
-        )
-        get().addXp(XP_REWARDS.account_added)
-      },
-
-      updateAccountApi: async (id, updates) => {
-        const updated = await accountsService.update(id, updates)
-        set(s => {
-          if (!s.currentUser) return {}
-          const accounts = s.currentUser.accounts.map(a => a.id === id ? { ...a, ...updated } : a)
-          return { currentUser: { ...s.currentUser, accounts } }
-        })
-      },
-
-      deleteAccountApi: async (id) => {
-        await accountsService.delete(id)
-        set(s => {
-          if (!s.currentUser) return {}
-          const accounts = s.currentUser.accounts.filter(a => a.id !== id)
-          return { currentUser: { ...s.currentUser, accounts } }
-        })
-      },
-
-      addWithdrawalApi: async (accountId, amount, note) => {
-        const withdrawal = await accountsService.addWithdrawal(accountId, amount, note)
-        set(s => {
-          if (!s.currentUser) return {}
-          const accounts = s.currentUser.accounts.map(a => {
-            if (a.id !== accountId) return a
-            return {
-              ...a,
-              withdrawals:     a.withdrawals + amount,
-              withdrawalsList: [...a.withdrawalsList, withdrawal],
-            }
-          })
-          return { currentUser: { ...s.currentUser, accounts } }
-        })
-        get().addXp(XP_REWARDS.withdrawal)
-      },
-
-      addDailyEntryApi: async (accountId, date, pnl) => {
-        const entry = await accountsService.addDailyEntry(accountId, date, pnl)
-        set(s => {
-          if (!s.currentUser) return {}
-          const accounts = s.currentUser.accounts.map(a => {
-            if (a.id !== accountId) return a
-            const existing = a.dailyEntries.findIndex(e => e.date === date)
-            const dailyEntries = existing >= 0
-              ? a.dailyEntries.map((e, i) => i === existing ? entry : e)
-              : [...a.dailyEntries, entry]
-            return { ...a, dailyEntries }
-          })
-          return { currentUser: { ...s.currentUser, accounts } }
-        })
-      },
-
-      approveEvaluationApi: async (id) => {
-        await accountsService.update(id, { type: 'live', status: 'activa' })
-        get().approveEvaluation(id)
-      },
 
       /* ── Misc ───────────────────────────────────────── */
       setDateRange:     (range) => set({ dateRange: range }),
@@ -417,7 +424,7 @@ export const useAppStore = create<AppState>()(
         if (!s.currentUser) return
 
         // En producción borra también las cuentas del servidor
-        if (!import.meta.env.DEV && authService.isLoggedIn()) {
+        if (REMOTE && authService.isLoggedIn()) {
           for (const acc of s.currentUser.accounts) {
             try { await accountsService.delete(acc.id) }
             catch (err) { console.error('Error borrando cuenta en servidor:', err) }

@@ -14,6 +14,8 @@ const SIZES = [10000, 25000, 50000, 100000, 150000, 200000, 300000]
 
 export default function CuentaModal({ open, onClose, account }: Props) {
   const { addAccount, updateAccount, companies } = useAppStore()
+  const [saving, setSaving] = useState(false)
+  const [error,  setError]  = useState('')
 
   const [form, setForm] = useState({
     name: account?.name ?? '',
@@ -26,8 +28,10 @@ export default function CuentaModal({ open, onClose, account }: Props) {
     notes: account?.notes ?? '',
   })
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    setSaving(true)
+    setError('')
     const data = {
       ...form,
       size: Number(form.size),
@@ -35,12 +39,18 @@ export default function CuentaModal({ open, onClose, account }: Props) {
       earnings: account?.earnings ?? 0,
       withdrawals: account?.withdrawals ?? 0,
     }
-    if (account) {
-      updateAccount(account.id, data)
-    } else {
-      addAccount(data as Parameters<typeof addAccount>[0])
+    try {
+      if (account) {
+        await updateAccount(account.id, data)
+      } else {
+        await addAccount(data as Parameters<typeof addAccount>[0])
+      }
+      onClose()
+    } catch (err) {
+      setError((err as Error).message || 'No se pudo guardar la cuenta. Inténtalo de nuevo.')
+    } finally {
+      setSaving(false)
     }
-    onClose()
   }
 
   const inputCls = 'w-full bg-bg border border-border rounded-xl px-3 py-2.5 text-sm text-text focus:outline-none focus:border-[#7C3AED] transition-colors'
@@ -103,9 +113,15 @@ export default function CuentaModal({ open, onClose, account }: Props) {
           </div>
         </div>
 
+        {error && (
+          <p className="text-xs text-[#EF4444] bg-[#EF4444]/10 border border-[#EF4444]/20 rounded-lg px-3 py-2">
+            {error}
+          </p>
+        )}
+
         <div className="flex gap-3 pt-2">
           <Button type="button" variant="secondary" onClick={onClose} className="flex-1 justify-center">Cancelar</Button>
-          <Button type="submit" className="flex-1 justify-center">{account ? 'Guardar cambios' : 'Añadir cuenta'}</Button>
+          <Button type="submit" className="flex-1 justify-center" loading={saving}>{account ? 'Guardar cambios' : 'Añadir cuenta'}</Button>
         </div>
       </form>
     </Modal>

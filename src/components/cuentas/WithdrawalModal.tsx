@@ -16,15 +16,25 @@ export default function WithdrawalModal({ open, onClose, account }: Props) {
   const [amount, setAmount] = useState('')
   const [note,   setNote]   = useState('')
   const [date,   setDate]   = useState(new Date().toISOString().slice(0, 10))
+  const [saving, setSaving] = useState(false)
+  const [error,  setError]  = useState('')
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!amount || Number(amount) <= 0) return
-    addWithdrawal(account.id, Number(amount), note || undefined, date)
-    setAmount('')
-    setNote('')
-    setDate(new Date().toISOString().slice(0, 10))
-    onClose()
+    setSaving(true)
+    setError('')
+    try {
+      await addWithdrawal(account.id, Number(amount), note || undefined, date)
+      setAmount('')
+      setNote('')
+      setDate(new Date().toISOString().slice(0, 10))
+      onClose()
+    } catch (err) {
+      setError((err as Error).message || 'No se pudo registrar el retiro. Inténtalo de nuevo.')
+    } finally {
+      setSaving(false)
+    }
   }
 
   const inputCls = 'w-full bg-bg border border-border rounded-xl px-3 py-2.5 text-sm text-text focus:outline-none focus:border-[#7C3AED] transition-colors'
@@ -49,9 +59,15 @@ export default function WithdrawalModal({ open, onClose, account }: Props) {
           <label className="block text-xs font-medium text-muted mb-1.5">Nota (opcional)</label>
           <input className={inputCls} value={note} onChange={e => setNote(e.target.value)} placeholder="ej. Pago de octubre" />
         </div>
+        {error && (
+          <p className="text-xs text-[#EF4444] bg-[#EF4444]/10 border border-[#EF4444]/20 rounded-lg px-3 py-2">
+            {error}
+          </p>
+        )}
+
         <div className="flex gap-3">
           <Button type="button" variant="secondary" onClick={onClose} className="flex-1 justify-center">Cancelar</Button>
-          <Button type="submit" variant="success" className="flex-1 justify-center">Registrar</Button>
+          <Button type="submit" variant="success" className="flex-1 justify-center" loading={saving}>Registrar</Button>
         </div>
       </form>
     </Modal>

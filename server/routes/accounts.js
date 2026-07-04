@@ -75,6 +75,51 @@ router.post('/', auth, [
   }
 })
 
+// Resetea una cuenta: nuevo coste acumulado, contadores a cero, borra retiros y P&L diarios reales
+router.post('/:id/reset', auth, async (req, res) => {
+  const { id } = req.params
+  const { resetCost = 0, startDate } = req.body
+
+  const client = await pool.connect()
+  try {
+    await client.query('BEGIN')
+
+    const owns = await client.query(
+      'SELECT id, cost FROM accounts WHERE id = $1 AND user_id = $2 FOR UPDATE', [id, req.user.id]
+    )
+    if (!owns.rows[0]) {
+      await client.query('ROLLBACK')
+      return res.status(404).json({ error: 'Cuenta no encontrada' })
+    }
+
+    await client.query('DELETE FROM daily_entries WHERE account_id = $1', [id])
+    await client.query('DELETE FROM withdrawals   WHERE account_id = $1', [id])
+
+    const newCost = parseFloat(owns.rows[0].cost) + Number(resetCost)
+
+    const { rows } = await client.query(`
+      UPDATE accounts SET
+        cost        = $1,
+        earnings    = 0,
+        withdrawals = 0,
+        status      = 'activa',
+        start_date  = COALESCE($2::date, start_date),
+        updated_at  = NOW()
+      WHERE id = $3
+      RETURNING *
+    `, [newCost, startDate || null, id])
+
+    await client.query('COMMIT')
+    res.json({ account: mapAccount({ ...rows[0], dailyEntries: [], withdrawalsList: [] }) })
+  } catch (err) {
+    await client.query('ROLLBACK')
+    console.error(err)
+    res.status(500).json({ error: 'Error del servidor' })
+  } finally {
+    client.release()
+  }
+})
+
 router.patch('/:id', auth, async (req, res) => {
   const { id } = req.params
   const owns = await pool.query(

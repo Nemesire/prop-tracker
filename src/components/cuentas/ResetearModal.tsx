@@ -11,25 +11,27 @@ interface Props {
 }
 
 export default function ResetearModal({ open, onClose, account }: Props) {
-  const { updateAccount } = useAppStore()
+  const { resetAccount } = useAppStore()
   const [price, setPrice] = useState('')
   const [date,  setDate]  = useState(new Date().toISOString().slice(0, 10))
+  const [saving, setSaving] = useState(false)
+  const [error,  setError]  = useState('')
 
-  function handleReset(e: React.FormEvent) {
+  async function handleReset(e: React.FormEvent) {
     e.preventDefault()
+    setSaving(true)
+    setError('')
     const resetCost = Number(price) || 0
-    updateAccount(account.id, {
-      cost:            account.cost + resetCost,
-      earnings:        0,
-      withdrawals:     0,
-      dailyEntries:    [],
-      withdrawalsList: [],
-      startDate:       date,
-      status:          'activa',
-    })
-    onClose()
-    setPrice('')
-    setDate(new Date().toISOString().slice(0, 10))
+    try {
+      await resetAccount(account.id, resetCost, date)
+      onClose()
+      setPrice('')
+      setDate(new Date().toISOString().slice(0, 10))
+    } catch (err) {
+      setError((err as Error).message || 'No se pudo resetear la cuenta. Inténtalo de nuevo.')
+    } finally {
+      setSaving(false)
+    }
   }
 
   const inputCls = 'w-full bg-bg border border-border rounded-xl px-3 py-2.5 text-sm text-text focus:outline-none focus:border-[#F97316] transition-colors'
@@ -79,6 +81,12 @@ export default function ResetearModal({ open, onClose, account }: Props) {
           />
         </div>
 
+        {error && (
+          <p className="text-xs text-[#EF4444] bg-[#EF4444]/10 border border-[#EF4444]/20 rounded-lg px-3 py-2">
+            {error}
+          </p>
+        )}
+
         <div className="flex gap-3 pt-2">
           <button
             type="button"
@@ -89,9 +97,10 @@ export default function ResetearModal({ open, onClose, account }: Props) {
           </button>
           <button
             type="submit"
-            className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#F97316] text-white text-sm font-semibold hover:bg-[#EA6C0A] transition-colors"
+            disabled={saving}
+            className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#F97316] text-white text-sm font-semibold hover:bg-[#EA6C0A] transition-colors disabled:opacity-50"
           >
-            <RefreshCw size={14} /> Resetear
+            <RefreshCw size={14} className={saving ? 'animate-spin' : ''} /> {saving ? 'Reseteando...' : 'Resetear'}
           </button>
         </div>
       </form>
