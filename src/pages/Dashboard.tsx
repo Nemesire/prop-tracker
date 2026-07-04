@@ -5,6 +5,7 @@ import { calcCompanyStats, calcROI, calcFundingRatio, formatCurrency } from '../
 import StatsCard from '../components/dashboard/StatsCard'
 import CapitalChart from '../components/dashboard/CapitalChart'
 import CompanyAnalysis from '../components/dashboard/CompanyAnalysis'
+import AdvancedStats from '../components/dashboard/AdvancedStats'
 import DateRangePicker from '../components/ui/DateRangePicker'
 import ShareModal from '../components/share/ShareModal'
 import LevelBadge from '../components/gamification/LevelBadge'
@@ -205,6 +206,9 @@ export default function Dashboard() {
           </div>
         ))}
       </div>
+
+      {/* Estadísticas Avanzadas */}
+      <AdvancedStats accounts={allAccounts} />
 
       {/* Company Analysis */}
       <div>
