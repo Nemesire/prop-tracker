@@ -1,5 +1,5 @@
-﻿import { useState } from 'react'
-import { Globe, User } from 'lucide-react'
+﻿import { useState, useEffect } from 'react'
+import { Globe, User, RefreshCw, AlertTriangle } from 'lucide-react'
 import { useCommunityStore } from '../store/useCommunityStore'
 import { useAppStore } from '../store/useAppStore'
 import Avatar from '../components/ui/Avatar'
@@ -17,9 +17,11 @@ const EVENT_ICONS: Record<string, string> = {
 }
 
 export default function Actividad() {
-  const { activity, addReaction } = useCommunityStore()
+  const { activity, addReaction, loadActivityFromApi, activityLoading, activityError } = useCommunityStore()
   const { currentUser } = useAppStore()
   const [filter, setFilter] = useState<'all' | 'mine'>('all')
+
+  useEffect(() => { loadActivityFromApi() }, [loadActivityFromApi])
 
   const displayed = filter === 'mine'
     ? activity.filter(e => e.userId === currentUser?.id)
@@ -32,7 +34,10 @@ export default function Actividad() {
           <h1 className="text-2xl font-bold text-text">Actividad</h1>
           <p className="text-sm text-muted mt-0.5">Lo que está pasando en la comunidad</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
+          {activityLoading && (
+            <RefreshCw size={14} className="animate-spin text-muted" />
+          )}
           {([
             { value: 'all', label: 'Comunidad', icon: Globe },
             { value: 'mine', label: 'Solo yo', icon: User },
@@ -47,6 +52,12 @@ export default function Actividad() {
           ))}
         </div>
       </div>
+
+      {activityError && (
+        <div className="max-w-2xl flex items-center gap-2 text-xs text-[#EF4444] bg-[#EF4444]/10 border border-[#EF4444]/20 rounded-xl px-3 py-2">
+          <AlertTriangle size={14} className="flex-shrink-0" /> No se pudo cargar la actividad: {activityError}
+        </div>
+      )}
 
       <div className="space-y-3 max-w-2xl">
         {displayed.map(event => (

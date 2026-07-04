@@ -30,9 +30,9 @@ router.post('/', auth, async (req, res) => {
     await pool.query(`
       INSERT INTO activity_feed (user_id, type, description, metadata)
       SELECT $1, 'withdrawal',
-             u.display_name || ' retiró ' || to_char($2::numeric, 'FM€999,999,999.00'),
-             jsonb_build_object('accountId', $3::text, 'amount', $2)
-      FROM users u WHERE u.id = $1
+             'realizó un retiro de su cuenta ' || a.company,
+             jsonb_build_object('accountId', $3::text, 'amount', $2::numeric)
+      FROM accounts a WHERE a.id = $3
     `, [req.user.id, amount, accountId])
 
     res.json({

@@ -2,9 +2,10 @@ import { create } from 'zustand'
 import type { ActivityEvent, RankingEntry } from '../types'
 import { MOCK_RANKING, MOCK_ACTIVITY } from '../data/mockUsers'
 import { rankingService } from '../services/ranking.service'
+import { activityService } from '../services/activity.service'
 
 /** DEV usa datos de ejemplo (no hay BD local salvo que arranques server/local.js).
- *  PROD siempre lee el ranking real desde la API (usuarios registrados). */
+ *  PROD siempre lee ranking y actividad reales desde la API (usuarios registrados). */
 const REMOTE = !import.meta.env.DEV
 
 interface CommunityState {
@@ -14,39 +15,47 @@ interface CommunityState {
   activityFilter: 'all' | 'mine'
   rankingLoading: boolean
   rankingError: string | null
+  activityLoading: boolean
+  activityError: string | null
 
   setRankingFilter: (f: CommunityState['rankingFilter']) => void
   setActivityFilter: (f: CommunityState['activityFilter']) => void
-  addReaction: (eventId: string, emoji: string, userId: string) => void
+  addReaction: (eventId: string, emoji: string, userId: string) => Promise<void>
   addActivity: (event: Omit<ActivityEvent, 'id' | 'reactions'>) => void
   insertUserInRanking: (entry: RankingEntry) => void
   loadRankingFromApi: () => Promise<void>
+  loadActivityFromApi: () => Promise<void>
 }
 
 export const useCommunityStore = create<CommunityState>()((set) => ({
   ranking: REMOTE ? [] : MOCK_RANKING,
-  activity: MOCK_ACTIVITY,
+  activity: REMOTE ? [] : MOCK_ACTIVITY,
   rankingFilter: 'withdrawals',
   activityFilter: 'all',
   rankingLoading: false,
   rankingError: null,
+  activityLoading: false,
+  activityError: null,
 
   setRankingFilter: (f) => set({ rankingFilter: f }),
   setActivityFilter: (f) => set({ activityFilter: f }),
 
-  addReaction: (eventId, emoji, userId) => set(s => ({
-    activity: s.activity.map(ev => {
-      if (ev.id !== eventId) return ev
-      const reactions = { ...ev.reactions }
-      const users = reactions[emoji] ?? []
-      if (users.includes(userId)) {
-        reactions[emoji] = users.filter(u => u !== userId)
-      } else {
-        reactions[emoji] = [...users, userId]
-      }
-      return { ...ev, reactions }
-    }),
-  })),
+  addReaction: async (eventId, emoji, userId) => {
+    if (REMOTE) await activityService.react(eventId, emoji)
+    set(s => ({
+      activity: s.activity.map(ev => {
+        if (ev.id !== eventId) return ev
+        const reactions = { ...ev.reactions }
+        const users = reactions[emoji] ?? []
+        if (users.includes(userId)) {
+          reactions[emoji] = users.filter(u => u !== userId)
+        } else {
+          reactions[emoji] = [...users, userId]
+        }
+        return { ...ev, reactions }
+      }),
+    }))
+  },
 
   addActivity: (event) => set(s => {
     const newEvent: ActivityEvent = {
@@ -82,6 +91,18 @@ export const useCommunityStore = create<CommunityState>()((set) => ({
       set({ ranking, rankingLoading: false })
     } catch (err) {
       set({ rankingLoading: false, rankingError: (err as Error).message })
+    }
+  },
+
+  /** Carga el feed de actividad real (eventos reales de usuarios registrados) — solo en producción */
+  loadActivityFromApi: async () => {
+    if (!REMOTE) return
+    set({ activityLoading: true, activityError: null })
+    try {
+      const activity = await activityService.getAll('community')
+      set({ activity, activityLoading: false })
+    } catch (err) {
+      set({ activityLoading: false, activityError: (err as Error).message })
     }
   },
 }))

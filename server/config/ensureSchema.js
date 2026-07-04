@@ -27,6 +27,14 @@ async function migrate() {
     );
 
     CREATE INDEX IF NOT EXISTS idx_invite_codes_code ON invite_codes (upper(code));
+
+    CREATE TABLE IF NOT EXISTS activity_reactions (
+      activity_id uuid        NOT NULL REFERENCES activity_feed(id) ON DELETE CASCADE,
+      user_id     uuid        NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      emoji       text        NOT NULL,
+      created_at  timestamptz NOT NULL DEFAULT now(),
+      PRIMARY KEY (activity_id, user_id, emoji)
+    );
   `)
 
   // Promociona al dueño de la app a admin

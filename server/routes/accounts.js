@@ -66,6 +66,11 @@ router.post('/', auth, [
 
     await pool.query('UPDATE users SET xp = xp + 10 WHERE id = $1', [req.user.id])
 
+    await pool.query(`
+      INSERT INTO activity_feed (user_id, type, description, metadata)
+      VALUES ($1, 'account_added', 'añadió una nueva cuenta en ' || $2::text, jsonb_build_object('accountId', $3::text))
+    `, [req.user.id, company, rows[0].id])
+
     res.status(201).json({
       account: mapAccount({ ...rows[0], dailyEntries: [], withdrawalsList: [] })
     })
@@ -123,9 +128,10 @@ router.post('/:id/reset', auth, async (req, res) => {
 router.patch('/:id', auth, async (req, res) => {
   const { id } = req.params
   const owns = await pool.query(
-    'SELECT id FROM accounts WHERE id = $1 AND user_id = $2', [id, req.user.id]
+    'SELECT id, type, company FROM accounts WHERE id = $1 AND user_id = $2', [id, req.user.id]
   )
   if (!owns.rows[0]) return res.status(404).json({ error: 'Cuenta no encontrada' })
+  const before = owns.rows[0]
 
   const { name, type, status, company, size, cost, startDate, endDate, earnings, withdrawals } = req.body
 
@@ -146,6 +152,14 @@ router.patch('/:id', auth, async (req, res) => {
       WHERE id = $11
       RETURNING *
     `, [name, type, status, company, size, cost, startDate, endDate, earnings, withdrawals, id])
+
+    // Evaluación aprobada → cuenta live: registrar en el feed de actividad
+    if (before.type === 'evaluacion' && type === 'live') {
+      await pool.query(`
+        INSERT INTO activity_feed (user_id, type, description, metadata)
+        VALUES ($1, 'evaluation_passed', 'aprobó una evaluación en ' || $2::text, jsonb_build_object('accountId', $3::text))
+      `, [req.user.id, before.company, id])
+    }
 
     res.json({ account: mapAccount(rows[0]) })
   } catch (err) {
