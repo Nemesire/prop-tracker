@@ -14,10 +14,11 @@ router.get('/', auth, async (req, res) => {
         CASE WHEN COALESCE(SUM(a.cost), 0) > 0
           THEN ((SUM(a.withdrawals) - SUM(a.cost)) / SUM(a.cost) * 100)::float
           ELSE 0 END                                                  AS roi,
-        COUNT(CASE WHEN a.type = 'live' THEN 1 END)::int             AS "approvedEvaluations"
+        COUNT(CASE WHEN a.type = 'live' THEN 1 END)::int              AS "approvedEvaluations",
+        COUNT(CASE WHEN a.status = 'activa' THEN 1 END)::int          AS "activeAccounts"
       FROM users u
       LEFT JOIN accounts a ON a.user_id = u.id
-      WHERE u.is_public = true
+      WHERE u.is_public = true AND u.status <> 'suspended'
       GROUP BY u.id
       ORDER BY "totalWithdrawals" DESC
     `)

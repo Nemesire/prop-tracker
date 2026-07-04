@@ -1,25 +1,35 @@
 import { create } from 'zustand'
 import type { ActivityEvent, RankingEntry } from '../types'
 import { MOCK_RANKING, MOCK_ACTIVITY } from '../data/mockUsers'
+import { rankingService } from '../services/ranking.service'
+
+/** DEV usa datos de ejemplo (no hay BD local salvo que arranques server/local.js).
+ *  PROD siempre lee el ranking real desde la API (usuarios registrados). */
+const REMOTE = !import.meta.env.DEV
 
 interface CommunityState {
   ranking: RankingEntry[]
   activity: ActivityEvent[]
   rankingFilter: 'roi' | 'profit' | 'withdrawals' | 'approvals'
   activityFilter: 'all' | 'mine'
+  rankingLoading: boolean
+  rankingError: string | null
 
   setRankingFilter: (f: CommunityState['rankingFilter']) => void
   setActivityFilter: (f: CommunityState['activityFilter']) => void
   addReaction: (eventId: string, emoji: string, userId: string) => void
   addActivity: (event: Omit<ActivityEvent, 'id' | 'reactions'>) => void
   insertUserInRanking: (entry: RankingEntry) => void
+  loadRankingFromApi: () => Promise<void>
 }
 
 export const useCommunityStore = create<CommunityState>()((set) => ({
-  ranking: MOCK_RANKING,
+  ranking: REMOTE ? [] : MOCK_RANKING,
   activity: MOCK_ACTIVITY,
   rankingFilter: 'withdrawals',
   activityFilter: 'all',
+  rankingLoading: false,
+  rankingError: null,
 
   setRankingFilter: (f) => set({ rankingFilter: f }),
   setActivityFilter: (f) => set({ activityFilter: f }),
@@ -62,4 +72,16 @@ export const useCommunityStore = create<CommunityState>()((set) => ({
       .map((r, i) => ({ ...r, rank: i + 1 }))
     return { ranking: updated }
   }),
+
+  /** Carga el ranking real (usuarios registrados) desde la API — solo en producción */
+  loadRankingFromApi: async () => {
+    if (!REMOTE) return
+    set({ rankingLoading: true, rankingError: null })
+    try {
+      const ranking = await rankingService.getAll()
+      set({ ranking, rankingLoading: false })
+    } catch (err) {
+      set({ rankingLoading: false, rankingError: (err as Error).message })
+    }
+  },
 }))

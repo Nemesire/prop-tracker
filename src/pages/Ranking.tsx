@@ -1,5 +1,5 @@
-﻿import { useState } from 'react'
-import { Calendar, Share2, ChevronRight } from 'lucide-react'
+﻿import { useState, useEffect } from 'react'
+import { Calendar, Share2, ChevronRight, RefreshCw, AlertTriangle } from 'lucide-react'
 import { useCommunityStore } from '../store/useCommunityStore'
 import { useAppStore } from '../store/useAppStore'
 import Avatar from '../components/ui/Avatar'
@@ -42,11 +42,13 @@ function encouragement(rank: number, total: number) {
 }
 
 export default function Ranking() {
-  const { ranking } = useCommunityStore()
+  const { ranking, rankingLoading, rankingError, loadRankingFromApi } = useCommunityStore()
   const { currentUser } = useAppStore()
   const navigate = useNavigate()
   const [sortBy, setSortBy] = useState<SortOption>('withdrawals')
   const [yearFilter] = useState(new Date().getFullYear().toString())
+
+  useEffect(() => { loadRankingFromApi() }, [loadRankingFromApi])
 
   const sorted = [...ranking]
     .sort((a, b) => SORT_VALUE(b, sortBy) - SORT_VALUE(a, sortBy))
@@ -101,9 +103,20 @@ export default function Ranking() {
             <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/30 text-white text-sm font-semibold border border-white/30">
               ✦ All Time
             </button>
+            {rankingLoading && (
+              <span className="flex items-center gap-1.5 text-xs text-white/70 ml-auto">
+                <RefreshCw size={12} className="animate-spin" /> Actualizando...
+              </span>
+            )}
           </div>
         </div>
       </div>
+
+      {rankingError && (
+        <div className="mx-6 mt-4 flex items-center gap-2 text-xs text-[#EF4444] bg-[#EF4444]/10 border border-[#EF4444]/20 rounded-xl px-3 py-2">
+          <AlertTriangle size={14} className="flex-shrink-0" /> No se pudo cargar el ranking: {rankingError}
+        </div>
+      )}
 
       <div className="p-6 space-y-5">
 
@@ -260,6 +273,12 @@ export default function Ranking() {
                 </div>
               )
             })}
+            {sorted.length === 0 && !rankingLoading && (
+              <div className="text-center py-10 text-muted">
+                <p className="text-sm">Aún no hay traders en el ranking.</p>
+                <p className="text-xs mt-1">Aparecerán aquí en cuanto los miembros con perfil público registren cuentas y retiros.</p>
+              </div>
+            )}
           </div>
         </div>
 
