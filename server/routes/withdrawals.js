@@ -31,7 +31,7 @@ router.post('/', auth, async (req, res) => {
       INSERT INTO activity_feed (user_id, type, description, metadata)
       SELECT $1, 'withdrawal',
              u.display_name || ' retiró ' || to_char($2::numeric, 'FM€999,999,999.00'),
-             jsonb_build_object('accountId', $3, 'amount', $2)
+             jsonb_build_object('accountId', $3::text, 'amount', $2)
       FROM users u WHERE u.id = $1
     `, [req.user.id, amount, accountId])
 
